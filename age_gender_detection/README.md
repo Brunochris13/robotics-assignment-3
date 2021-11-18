@@ -1,7 +1,7 @@
 How to use?
 =============
 
-> python detector.py "images/<filename>.jpg"
+> python detector.py "images/'filename'.jpg"
 
 
 **I'm going to change codes a bit after we make a project package**
