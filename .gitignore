@@ -16,6 +16,9 @@ msg/_*.py
 build_isolated/
 devel_isolated/
 
+# Cache
+__pycache__/
+
 # Environment
 venv/
 

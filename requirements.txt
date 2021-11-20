@@ -1,1 +1,4 @@
-numpy=1.21.4
+numpy==1.21.4
+opencv-pyhton==4.5.4
+speechrecognition==3.8.1
+pyaudio==0.2.11
