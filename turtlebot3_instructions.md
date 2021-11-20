@@ -11,7 +11,7 @@ To launch turtlebot3 in an empty world in Gazebo
 roscore
 roslaunch turtlebot3_gazebo turtlebot3_empty_world.launch
 or
-roslaunch turtlebot3_gazebo turtlebot3_world.launc
+roslaunch turtlebot3_gazebo turtlebot3_world.launch
 ```
 
 If you want to try the built-in Navigation node run in a new terinal
