@@ -1,3 +1,6 @@
+# To automatically choose waffle robot as turtlebot
+echo "export TURTLEBOT3_MODEL=waffle" >> ~/.bashrc
+
 # To install Ros-Gazebo package
 sudo apt-get install ros-noetic-gazebo-ros-pkgs ros-noetic-gazebo-ros-control
 
