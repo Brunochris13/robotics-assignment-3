@@ -61,6 +61,7 @@ export TURTLEBOT3_MODEL=waffle
 Or to automatically choose it every time, just add the export to `bashrc`:
 ```shell
 echo "export TURTLEBOT3_MODEL=waffle" >> ~/bashrc
+source ~/.bashrc
 ```
 
 ### Python
