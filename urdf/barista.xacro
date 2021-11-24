@@ -1,0 +1,284 @@
+<?xml version="1.0" ?>
+<robot name="BaristaII" 
+  xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="$(find barista_bot)/urdf/materials.xacro" />
+  <xacro:include filename="$(find barista_bot)/urdf/barista.gazebo" />
+  <xacro:include filename="$(find barista_bot)/urdf/macros.xacro" />
+
+  <xacro:property name="casterRadius" value="0.049"/>
+  <xacro:property name="casterMass" value="1"/>
+  <xacro:property name="cameraSize" value="0.1"/>
+  <xacro:property name="cameraMass" value="0.5"/>
+
+  <!-- <link name="base_link" />
+
+  <joint name="base_link_to_chassis" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis"/>
+  </joint> -->
+
+
+  <joint name="BaristaII__link_0_0_clone_JOINT_3" type="fixed">
+    <parent link="left_rod"/>
+    <child link="top_plate"/>
+    <origin rpy="0 0 0" xyz="0   0.23 0.3"/>
+    <axis xyz="0 0 0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="BaristaII__link_0_JOINT_0" type="fixed">
+    <parent link="chassis"/>
+    <child link="front_caster"/>
+    <origin rpy="0      -0.00014 -0.00024" xyz="2.0004e-01  0 6.0000e-05"/>
+    <axis xyz="0 0 0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="BaristaII__link_0_JOINT_1_0" type="fixed">
+    <parent link="chassis"/>
+    <child link="back_caster"/>
+    <origin rpy="0      -0.00029 -0.00049" xyz="-2.0004e-01  0 -6.0000e-05"/>
+    <axis xyz="0 0 0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="BaristaII__link_0_JOINT_1" type="fixed">
+    <parent link="chassis"/>
+    <child link="left_rod"/>
+    <origin rpy="0 0 0" xyz="0   -0.23  0.5"/>
+    <axis xyz="0 0 0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="BaristaII__link_0_JOINT_2_0" type="fixed">
+    <parent link="chassis"/>
+    <child link="right_rod"/>
+    <origin rpy="0 0 0" xyz="0      0.22999 0.5"/>
+    <axis xyz="0 0 0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="BaristaII__link_0_JOINT_2_1" type="fixed">
+    <parent link="chassis"/>
+    <child link="camera"/>
+    <origin rpy="0      -0.00014 -0.00024" xyz="0.2  0.0000e+00  4.0037e-01"/>
+    <axis xyz="0 0 0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="left_wheel_hinge" type="continuous">
+    <parent link="chassis"/>
+    <child link="left_wheel"/>
+    <origin rpy="0 0 0" xyz="0      -0.30001  0.1"/>
+    <axis xyz="0 1 0" rpy="0 0 0"/>
+    <limit effort="10000" velocity="1000"/>
+    <dynamics damping="1.0" friction="1.0"/>
+  </joint>
+  <joint name="right_wheel_hinge" type="continuous">
+    <parent link="chassis"/>
+    <child link="right_wheel"/>
+    <origin rpy="0 0 0" xyz="0      0.30001 0.1"/>
+    <axis xyz="0 1 0" rpy="0 0 0"/>
+    <limit effort="10000" velocity="1000"/>
+    <dynamics damping="1.0" friction="1.0"/>
+  </joint>
+  <joint name="top_plate_JOINT_3" type="fixed">
+    <parent link="top_plate"/>
+    <child link="hokuyo"/>
+    <origin rpy="0      -0.00014 -0.00024" xyz="0.2      0      0.10004"/>
+    <axis xyz="0 0 0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <link name="chassis">
+    <inertial>
+      <mass value="5"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.115625" ixy="0" ixz="0" iyy="0.115625" iyz="0" izz="0.15625"/>
+    </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0  0  0.2"/>
+      <geometry>
+        <cylinder length="0.3" radius="0.25"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy="0 0 0" xyz="0  0  0.2"/>
+      <geometry>
+        <cylinder length="0.3" radius="0.25"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="front_caster">
+    <inertial>
+      <mass value="${casterMass}"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <xacro:sphere_inertia m="${casterMass}" r="${casterRadius}"/>
+    </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.049"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.049"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="left_rod">
+    <inertial>
+      <mass value="0.5"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.020467" ixy="0" ixz="0" iyy="0.020467" iyz="0" izz="0.0001"/>
+    </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.3" radius="0.02"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.5" radius="0.02"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="back_caster">
+    <inertial>
+      <mass value="${casterMass}"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <xacro:sphere_inertia m="${casterMass}" r="${casterRadius}"/>
+    </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.049"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.049"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="right_rod">
+    <inertial>
+      <mass value="0.5"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.020467" ixy="0" ixz="0" iyy="0.020467" iyz="0" izz="0.0001"/>
+    </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.5" radius="0.02"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.5" radius="0.02"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="top_plate">
+    <inertial>
+      <mass value="2"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.032917" ixy="0" ixz="0" iyy="0.032917" iyz="0" izz="0.0625"/>
+    </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.25"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.25"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="camera">
+    <inertial>
+      <mass value="0.1"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.166667" ixy="0" ixz="0" iyy="0.166667" iyz="0" izz="0.166667"/>
+    </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="left_wheel">
+    <inertial>
+      <mass value="${cameraMass}" />
+      <origin rpy=" 0  1.5707  1.5707" xyz="0 0 0"/>
+      <xacro:box_inertia m="${cameraMass}" x="${cameraSize}" y="${cameraSize}" z="${cameraSize}" />
+    </inertial>
+    <collision>
+      <origin rpy=" 0  1.5707  1.5707" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.15"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy=" 0  1.5707  1.5707" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.15"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="right_wheel">
+    <inertial>
+      <mass value="1"/>
+      <origin rpy=" 0  1.5707  1.5707" xyz="0 0 0"/>
+      <inertia ixx="0.145833" ixy="0" ixz="0" iyy="0.145833" iyz="0" izz="0.125"/>
+    </inertial>
+    <collision>
+      <origin rpy=" 0  1.5707  1.5707" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.15"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin rpy=" 0  1.5707  1.5707" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.15"/>
+      </geometry>
+    </visual>
+  </link>
+  <link name="hokuyo">
+    <inertial>
+      <mass value="0.1"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.166667" ixy="0" ixz="0" iyy="0.166667" iyz="0" izz="0.166667"/>
+    </inertial>
+    <collision name="BaristaII__collision">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <visual name="BaristaII__visual">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://barista_bot/meshes/hokuyo.dae" />
+      </geometry>
+    </visual>
+  </link>
+  <joint name="camera_optical_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="-1.5707 0 -1.5707"/>
+    <parent link="camera"/>
+    <child link="camera_link_optical"/>
+  </joint>
+
+  <link name="camera_link_optical">
+  </link>
+</robot>

@@ -8,6 +8,7 @@
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="brunochris13@todo.todo">brunochris13</maintainer>
+  <maintainer email="mantix7@gmail.com">mantasu</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -55,10 +56,6 @@
   <build_export_depend>std_msgs</build_export_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>turtlebot3</exec_depend>
-  <exec_depend>turtlebot3_msgs</exec_depend>
-  <exec_depend>turtlebot3_simulations</exec_depend>
-
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

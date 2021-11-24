@@ -1,27 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+
 <launch>
-        <!-- robot args -->
-        <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
-        <arg name="x_pos" default="5.5"/>
-        <arg name="y_pos" default="3.0"/>
-        <arg name="z_pos" default="0.0"/>
-        
-        <!-- world args -->
-        <arg name="debug" default="false" />
-        <arg name="gui" default="true" />
-        <arg name="pause" default="true" />
-        <arg name="world" default="$(find waiter_robot)/worlds/restaurant.world" />
+    <!-- Robot pose -->
+    <arg name="x" default="0"/>
+    <arg name="y" default="0"/>
+    <arg name="z" default="0"/>
+    <arg name="roll" default="0"/>
+    <arg name="pitch" default="0"/>
+    <arg name="yaw" default="0"/>
 
-        <!-- include gazebo_ros launcher -->
-        <include file="$(find gazebo_ros)/launch/empty_world.launch">
-                <arg name="world_name" value="$(arg world)" />
-                <arg name="debug" value="$(arg debug)" />
-                <arg name="gui" value="$(arg gui)" />
-                <arg name="paused" value="$(arg pause)" />
-                <arg name="use_sim_time" value="true" />
-        </include>
+    <!-- World args -->
+    <arg name="debug" default="false" />
+    <arg name="gui" default="true" />
+    <arg name="world" default="$(find waiter_robot)/worlds/cafe.world" />
 
-        <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+    <!-- Include gazebo_ros launcher -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(arg world)" />
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="use_sim_time" value="true" />
+    </include>
 
-        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+    <!-- Send fake joint values-->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="false"/>
+    </node>
+
+    <!-- Send robot states to tf -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/>
+
+    <!-- Send urdf to param server -->
+    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find waiter_robot)/urdf/barista.xacro'" />
+
+    <!-- Spawn Waiter Robot -->
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model waiter_robot 
+              -x $(arg x) -y $(arg y) -z $(arg z)
+              -R $(arg roll) -P $(arg pitch) -Y $(arg yaw)"/>
+    
+    <!-- Launch rviz-->
+    <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find waiter_robot)/rviz/simulation.rviz"/>
 </launch>
