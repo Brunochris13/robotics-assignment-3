@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <robot name="BaristaII" 
   xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:include filename="$(find barista_bot)/urdf/materials.xacro" />
-  <xacro:include filename="$(find barista_bot)/urdf/barista.gazebo" />
-  <xacro:include filename="$(find barista_bot)/urdf/macros.xacro" />
+  <xacro:include filename="$(find waiter_robot)/urdf/materials.xacro" />
+  <xacro:include filename="$(find waiter_robot)/urdf/barista.gazebo" />
+  <xacro:include filename="$(find waiter_robot)/urdf/macros.xacro" />
 
   <xacro:property name="casterRadius" value="0.049"/>
   <xacro:property name="casterMass" value="1"/>
@@ -269,7 +269,7 @@
     <visual name="BaristaII__visual">
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://barista_bot/meshes/hokuyo.dae" />
+        <mesh filename="package://waiter_robot/meshes/hokuyo.dae" />
       </geometry>
     </visual>
   </link>
