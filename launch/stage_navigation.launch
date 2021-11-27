@@ -1,0 +1,30 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="map_file" default="$(find waiter_robot)/maps/stage_restaurant.yaml"/>
+  <arg name="open_rviz" default="true"/>
+
+  <include file="$(find waiter_robot)/launch/stage.launch"/>
+
+  <!-- Map server -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+  <!-- AMCL -->
+  <node pkg="amcl" name="amcl" type="amcl" args="scan:=base_scan"/>
+
+  <!-- move_base -->
+    <node name="move_base" pkg="move_base" type="move_base" respawn="false" output="screen">
+        <rosparam file="$(find waiter_robot)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find waiter_robot)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find waiter_robot)/config/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find waiter_robot)/config/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find waiter_robot)/config/base_local_planner_params.yaml" command="load" />
+        <param name="base_global_planner" value="navfn/NavfnROS" />
+        <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+    </node>
+
+  <!-- rviz -->
+  <group if="$(arg open_rviz)"> 
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find waiter_robot)/rviz/stage_navigation.rviz"/>
+  </group>
+</launch>
