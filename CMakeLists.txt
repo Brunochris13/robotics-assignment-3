@@ -8,6 +8,9 @@ project(waiter_robot)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  nav_core
+  pluginlib
+  roscpp
   rospy
   std_msgs
 )
@@ -104,7 +107,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES waiter_robot
-#  CATKIN_DEPENDS rospy std_msgs
+  CATKIN_DEPENDS nav_core pluginlib roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -123,6 +126,7 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/waiter_robot.cpp
 # )
+# add_library(${PROJECT_NAME}_lib src/navigation/global_planner/GlobalPlanner.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -160,6 +164,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   src/navigation/provide_goal_pose.py
+  src/navigation/provide_initial_pose_estimate.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
