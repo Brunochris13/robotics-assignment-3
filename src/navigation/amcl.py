@@ -13,15 +13,16 @@ from nav_msgs.msg import OccupancyGrid, Odometry
 from sensor_msgs.msg import LaserScan
 from copy import deepcopy
 from threading import Lock
-from . import sensor_model
-from . util import getHeading, rotateQuaternion
-from . histogram import Histogram
+from navigation import sensor_model
+from navigation.util import getHeading, rotateQuaternion
+from navigation.histogram import Histogram
 
 PI_OVER_TWO = math.pi/2
 
+
 class Amcl():
 
-    WS_LAST_FUNC = lambda x: np.mean(np.square(x))
+    def WS_LAST_FUNC(self, x): return np.mean(np.square(x))
 
     # Parameters
     INIT_X = 0 		    # Initial x location of robot (metres)
@@ -29,9 +30,16 @@ class Amcl():
     INIT_Z = 0 			# Initial z location of robot (metres)
     INIT_HEADING = 0 	# Initial orientation of robot (radians)
 
-    NUMBER_PREDICTED_READINGS = 100 # Number of Initial Samples
+    # Set motion model parameters
+    ODOM_ROTATION_NOISE = .15
+    ODOM_TRANSLATION_NOISE = .15
+    ODOM_DRIFT_NOISE = .15
 
-    MAX_NUM_SKIP_UPDATES = 2 # Number of updates the cloud is not updated
+    NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
+
+    MAX_NUM_SKIP_UPDATES = 2  # Number of updates the cloud is not updated
+
+    KIDNAP_THRESHOLD = 100
 
     def __init__(self):
         # Minimum change (m/radians) before publishing new particle cloud and pose
@@ -46,6 +54,7 @@ class Amcl():
         self._update_lock = Lock()
 
         self.latest_scan = None
+        self.prev_scan = None
         self.last_published_pose = None
 
         self.num_last_updates = 0
@@ -73,7 +82,7 @@ class Amcl():
         # Get Map
         rospy.loginfo("Waiting for a map...")
         try:
-            self.ocuccupancy_map = rospy.wait_for_message(
+            self.occupancy_map = rospy.wait_for_message(
                 "/map", OccupancyGrid, 20)
         except:
             rospy.logerr("Problem getting a map. Check that you have a map_server"
@@ -81,12 +90,13 @@ class Amcl():
             sys.exit(1)
 
         rospy.loginfo("Map received. %d X %d, %f px/m." %
-                      (self.ocuccupancy_map.info.width, self.ocuccupancy_map.info.height,
-                       self.ocuccupancy_map.info.resolution))
+                      (self.occupancy_map.info.width, self.occupancy_map.info.height,
+                       self.occupancy_map.info.resolution))
 
         self.set_map()
 
         self._initialize_estimated_pose()
+        self.last_published_pose = deepcopy(self.estimated_pose)
 
         # Subscribers
         self.laser_subscriber = rospy.Subscriber("/base_scan", LaserScan,
@@ -115,7 +125,7 @@ class Amcl():
                 self.estimated_pose)
 
             # Get updated particle cloud and publish it
-            self.cloud_publisher.publish(
+            self.particle_cloud_publisher.publish(
                 self.particlecloud)
 
             # Get updated transform and publish it
@@ -126,7 +136,7 @@ class Amcl():
         rospy.loginfo("Received initialpose")
         self.set_initial_pose(initialpose)
         self.last_published_pose = deepcopy(self.estimated_pose)
-        self.cloud_publisher.publish(self.particlecloud)
+        self.particle_cloud_publisher.publish(self.particlecloud)
         rospy.loginfo("Published initialpose")
 
     def update_filter(self, scan):
@@ -166,14 +176,17 @@ class Amcl():
         """
         This should use the supplied laser scan to update the current
         particle cloud. i.e. self.particlecloud should be updated.
-        
+
         :Args:
             | scan (sensor_msgs.msg.LaserScan): laser scan to use for update
         """
         # If the sensor data is the same, don't update particle cloud
-        if self.latest_scan is not None:
-            if self._rel_error(scan.ranges, self.last_scan.ranges) < 1e-9:
+        if self.prev_scan is not None:
+            if self._rel_error(scan.ranges, self.prev_scan.ranges) < 1e-9:
                 return
+
+        # Store previous scan measurements
+        self.prev_scan = scan
 
         # Increment num last updates
         self.num_last_updates += 1
@@ -202,7 +215,7 @@ class Amcl():
 
         The method utilizes helper function to resample particles in an
         adaptive KLD-based way.
-        
+
         Args:
             poses (geometry_msgs.msg.PoseArray): the particle poses
             ws (list): the list of importance weights for each pose
@@ -210,30 +223,30 @@ class Amcl():
             (geometry_msgs.msg.PoseArray): resampled particle poses
         """
         SPREAD_THRESHOLD = 150
-        
+
         if not self.clustered:
             poses = self._resample_mcl_base(poses, ws)
-        
+
         poses = self.resample_amcl_base(poses, ws)
 
         # Keep track of robot's certainty of the pose
-        rospy.loginfo(f"Certainty: {np.mean(self.ws_last_eval):.4f} | " + \
+        rospy.loginfo(f"Certainty: {np.mean(self.ws_last_eval):.4f} | " +
                       f"Threshold: {self.KIDNAP_THRESHOLD}")
 
         # If weights are low, dissolve particles
         if len(poses.poses) > SPREAD_THRESHOLD and \
            -1 not in self.ws_last_eval and self.clustered and \
            np.mean(self.ws_last_eval) <= self.KIDNAP_THRESHOLD:
-            # Reinitialize the trailing of weight eval values 
+            # Reinitialize the trailing of weight eval values
             self.ws_last_eval = list(map(lambda _: -1, self.ws_last_eval))
             poses = self._generate_random_poses(len(poses.poses))
             self.clustered = False
 
             return poses
-        
+
         if len(poses.poses) <= SPREAD_THRESHOLD:
             self.clustered = True
-            
+
         return poses
 
     def _resample_mcl_base(self, poses, ws):
@@ -245,7 +258,7 @@ class Amcl():
 
         Note:
             Passed weights, i.e., `ws` must sum up to `1`.
-        
+
         Args:
             poses (geometry_msgs.msg.PoseArray): the particle poses
             ws (list): the list of importance weights for each pose
@@ -263,7 +276,8 @@ class Amcl():
 
         # Filter by contributions of particles
         for _ in ws:
-            while us[-1] > cdf[i]: i += 1
+            while us[-1] > cdf[i]:
+                i += 1
             us.append(us[-1] + M_inv)
             poses_resampled.poses.append(self._get_noisy_pose(poses.poses[i]))
 
@@ -300,12 +314,12 @@ class Amcl():
 
         # While not min or KLD calculated samples reached
         while len(poses_resampled.poses) < Mx or \
-              len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
+                len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
             # Sample random pose, add it to resampled list
             pose = np.random.choice(poses.poses, p=ws)
             pose = self._get_noisy_pose(pose)
             poses_resampled.poses.append(pose)
-            
+
             # If the pose falls into empty bin
             if self.histogram.add_if_empty(pose):
                 # Number of current non-empty bins
@@ -314,9 +328,9 @@ class Amcl():
                 # Update KL distance
                 if k > 1:
                     Mx = ((k - 1) / (2 * eps)) * \
-                         math.pow(1 - (2 / (9 * (k - 1))) + \
-                         math.sqrt(2 / (9 * (k - 1))) * z, 3)
-                
+                        math.pow(1 - (2 / (9 * (k - 1))) +
+                                 math.sqrt(2 / (9 * (k - 1))) * z, 3)
+
                 # Don't exceed the maximum allowed range
                 Mx = MAX_NUM_PARTICLES if Mx > MAX_NUM_PARTICLES else Mx
 
@@ -334,11 +348,11 @@ class Amcl():
         """
         This should calculate and return an updated robot pose estimate based
         on the particle cloud (self.particlecloud).
-        
+
         Create new estimated pose, given particle cloud
         E.g. just average the location and orientation values of each of
         the particles and return this.
-        
+
         Better approximations could be made by doing some simple clustering,
         e.g. taking the average location of half the particles after 
         throwing away any which are outliers
@@ -383,7 +397,7 @@ class Amcl():
         # Num best particles to keep
         if num_keep is None:
             num_keep = self.NUMBER_PREDICTED_READINGS // 2
-        
+
         # Sorted indeces of `estimates - mean`
         ind = np.argsort(np.abs(estimates - np.mean(estimates)))
 
@@ -399,13 +413,13 @@ class Amcl():
          """
         transform = Transform()
 
-        T_est = transformations.quaternion_matrix([self.estimatedpose.pose.pose.orientation.x,
-                                                   self.estimatedpose.pose.pose.orientation.y,
-                                                   self.estimatedpose.pose.pose.orientation.z,
-                                                   self.estimatedpose.pose.pose.orientation.w])
-        T_est[0, 3] = self.estimatedpose.pose.pose.position.x
-        T_est[1, 3] = self.estimatedpose.pose.pose.position.y
-        T_est[2, 3] = self.estimatedpose.pose.pose.position.z
+        T_est = transformations.quaternion_matrix([self.estimated_pose.pose.pose.orientation.x,
+                                                   self.estimated_pose.pose.pose.orientation.y,
+                                                   self.estimated_pose.pose.pose.orientation.z,
+                                                   self.estimated_pose.pose.pose.orientation.w])
+        T_est[0, 3] = self.estimated_pose.pose.pose.position.x
+        T_est[1, 3] = self.estimated_pose.pose.pose.position.y
+        T_est[2, 3] = self.estimated_pose.pose.pose.position.z
 
         T_odom = transformations.quaternion_matrix([self.last_odom_pose.pose.pose.orientation.x,
                                                    self.last_odom_pose.pose.pose.orientation.y,
@@ -441,8 +455,9 @@ class Amcl():
         a filter predict step with odeometry followed by an update step using
         the latest laser.
         """
-        self.predict_from_odometry(odometry)
-        self.update_filter(self.latest_scan)
+        if not self.latest_scan == None:
+            self.predict_from_odometry(odometry)
+            self.update_filter(self.latest_scan)
 
     def predict_from_odometry(self, odom):
         """
@@ -551,6 +566,16 @@ class Amcl():
                                                                      self.INIT_HEADING)
         self.estimated_pose.header.frame_id = "map"
 
+    def set_initial_pose(self, pose):
+        """ Initialise filter with start pose """
+        self.estimated_pose.pose = pose.pose
+        # ----- Estimated pose has been set, so we should now reinitialise the
+        # ----- particle cloud around it
+        rospy.loginfo("Got pose. Calling initialise_particle_cloud().")
+        self.particlecloud = self.initialise_particle_cloud(
+            self.estimated_pose)
+        self.particlecloud.header.frame_id = "map"
+
     def initialise_particle_cloud(self, initialpose):
         """
         Set particle cloud to initialpose plus noise
@@ -573,7 +598,7 @@ class Amcl():
 
         # Initialize histogram based on map parameters
         self.histogram = Histogram(width * resolution,
-                                         height * resolution, origin)
+                                   height * resolution, origin)
 
         # Shorthand for initial pose
         pose0 = initialpose.pose.pose
@@ -625,5 +650,6 @@ if __name__ == '__main__':
     try:
         rospy.init_node("amcl")
         Amcl()
+        rospy.spin()
     except rospy.ROSInterruptException:
         pass
