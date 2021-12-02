@@ -115,21 +115,25 @@ class Amcl():
         much, republish the latest pose to update RViz
         """
         self.latest_scan = scan
-        if self._sufficientMovementDetected(self.estimated_pose):
-            # Publish the new pose
-            self.amcl_pose_publisher.publish(
-                self.estimated_pose)
+        #rate = rospy.Rate(20) # 10hz
+        #if self._sufficientMovementDetected(self.estimated_pose):
+        #while not rospy.is_shutdown():
+        # Publish the new pose
+        self.amcl_pose_publisher.publish(
+            self.estimated_pose)
 
-            # Update record of previously-published pose
-            self.last_published_pose = deepcopy(
-                self.estimated_pose)
+        # Update record of previously-published pose
+        self.last_published_pose = deepcopy(
+            self.estimated_pose)
 
-            # Get updated particle cloud and publish it
-            self.particle_cloud_publisher.publish(
-                self.particlecloud)
+        # Get updated particle cloud and publish it
+        self.particle_cloud_publisher.publish(
+            self.particlecloud)
 
-            # Get updated transform and publish it
-            self.tf_publisher.publish(self.tf_message)
+        # Get updated transform and publish it
+        self.tf_publisher.publish(self.tf_message)
+
+        #rate.sleep()
 
     def initial_pose_callback(self, initialpose):
         """ called when RViz sends a user supplied initial pose estimate """
@@ -138,6 +142,16 @@ class Amcl():
         self.last_published_pose = deepcopy(self.estimated_pose)
         self.particle_cloud_publisher.publish(self.particlecloud)
         rospy.loginfo("Published initialpose")
+
+    def odometry_callback(self, odometry):
+        """
+        Odometry received. If the filter is initialised then execute
+        a filter predict step with odeometry followed by an update step using
+        the latest laser.
+        """
+        if not self.latest_scan == None:
+            self.predict_from_odometry(odometry)
+            self.update_filter(self.latest_scan)
 
     def update_filter(self, scan):
         """
@@ -490,16 +504,6 @@ class Amcl():
 
         # Add the transform to the list of all transforms
         self.tf_message = tfMessage(transforms=[new_tfstamped])
-
-    def odometry_callback(self, odometry):
-        """
-        Odometry received. If the filter is initialised then execute
-        a filter predict step with odeometry followed by an update step using
-        the latest laser.
-        """
-        if not self.latest_scan == None:
-            self.predict_from_odometry(odometry)
-            self.update_filter(self.latest_scan)
 
     def predict_from_odometry(self, odom):
         """
