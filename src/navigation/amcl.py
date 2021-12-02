@@ -95,6 +95,16 @@ class Amcl():
 
         self.set_map()
 
+        # Map parameters
+        width = self.occupancy_map.info.width
+        height = self.occupancy_map.info.height
+        origin = self.occupancy_map.info.origin.position
+        resolution = self.occupancy_map.info.resolution
+
+        # Initialize histogram based on map parameters
+        self.histogram = Histogram(width * resolution,
+                                   height * resolution, origin)
+
         self._initialize_estimated_pose()
         self.last_published_pose = deepcopy(self.estimated_pose)
 
@@ -615,12 +625,10 @@ class Amcl():
     def set_initial_pose(self, pose):
         """ Initialise filter with start pose """
         self.estimated_pose.pose = pose.pose
-        # ----- Estimated pose has been set, so we should now reinitialise the
-        # ----- particle cloud around it
+        # Estimated pose has been set, so we should now reinitialise the particle cloud around it
         rospy.loginfo("Got pose. Calling initialise_particle_cloud().")
         self.particlecloud = self.initialise_particle_cloud(
             self.estimated_pose)
-        self.particlecloud.header.frame_id = "map"
 
     def initialise_particle_cloud(self, initialpose):
         """
@@ -636,16 +644,6 @@ class Amcl():
         :Return:
             | (geometry_msgs.msg.PoseArray) poses of the particles
         """
-        # Map parameters
-        width = self.occupancy_map.info.width
-        height = self.occupancy_map.info.height
-        origin = self.occupancy_map.info.origin.position
-        resolution = self.occupancy_map.info.resolution
-
-        # Initialize histogram based on map parameters
-        self.histogram = Histogram(width * resolution,
-                                   height * resolution, origin)
-
         # Shorthand for initial pose
         pose0 = initialpose.pose.pose
 
