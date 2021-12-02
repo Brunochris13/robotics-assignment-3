@@ -127,10 +127,10 @@ class Communication():
         Returns:
             (bool): Whether the answer was yes or no. `None` if none.
         """
-        if voice_data in ["yes", "yup", "yeah"]:
+        if voice_data in ["yes", "yup", "yeah", "y", "true", "possitive"]:
             # If positive
             return True
-        elif voice_data in ["no", "nope", "nah"]:
+        elif voice_data in ["no", "nope", "nah", "n", "false", "negative"]:
             # If negative
             return False
         else:

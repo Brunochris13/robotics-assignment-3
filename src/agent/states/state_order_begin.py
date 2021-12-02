@@ -55,6 +55,57 @@ class OrderBegin(State):
         pass
 
 
+    def _single_customer_order(self, i, robot, options):
+        while True:
+            # Find out what the i'th customer would like to order today
+            question = f"What would you like to order, customer {i+1}?"
+            action, voice_data = robot.communication.ask(question, options)
+
+            if self._cancel_if_unclear(action, robot):
+                # Cancel order if not clear
+                return Action.BASE.REJECT
+            
+            if voice_data in ["i will pass", "skip", "pass"]:
+                # If the customer skips it
+                return Action.BASE.IGNORE
+
+            if voice_data in robot.restaurant.get_menu_n18() and \
+                robot.orders[-1].people[i][1] <= 22:
+                # If the customer is suspected to be below 22, ask to confirm ID
+                robot.communication.say("Please wait for staff to check your ID.")
+                above_18 = input("The customer is above 18? (y/n)")
+                above_18 = robot.communication.yesno_to_bool(above_18)
+
+                if not above_18:
+                    # If not above 18, don't add the requested order to list
+                    robot.communication.say("Sorry, you cannot order that.")
+                else:
+                    # If above 18, confirm the order and add it to contents
+                    robot.communication.say("Great, your ID was confirmed.")
+                    price = robot.restaurant.get_menu()[voice_data]
+                    robot.orders[-1].contents.append((voice_data, price))
+            else:
+                # If it's not from 18+ menu, just add it to list
+                price = robot.restaurant.get_menu()[voice_data]
+                robot.orders[-1].contents.append((voice_data, price))
+
+            # Find out what the i'th customer would like to order today
+            question = f"Would you like to order more, customer {i+1}?"
+            action, voice_data = robot.communication.ask(question, binary=True)
+
+            if self._cancel_if_unclear(action, robot):
+                # Cancel order if not clear
+                return Action.BASE.REJECT
+            
+            if not voice_data:
+                # If nothing to add, end
+                return Action.BASE.ACCEPT
+        
+        
+        
+
+
+
     def do(self, robot):
 
         if self.substate is 1:
@@ -182,15 +233,20 @@ class OrderBegin(State):
 
         # Tell the menu to every customer and add options like "skip"/"pass"
         robot.communication.say(f"Let me now present you the menu. {speech}")
-        options = robot.get_menu().keys() + ["i will pass", "skip"]
+        options = robot.restaurant.get_menu().keys() + ["i will pass", "skip", "pass"]
 
         for i in len(robot.orders[-1].people):
-            # Find out what the i'th customer would like to order today
-            question = f"What would you like to order, customer {i+1}?"
-            action, voice_data = robot.communication.ask(question, options)
-
-            if self._cancel_if_unclear(action, robot):
-                # Cancel order if people play around
+            # Get the action to be performed after order execution
+            action = self._single_customer_order(i, robot, options)
+            
+            if action is Action.BASE.REJECT:
+                # If order not succesful, cancel it
                 return self._SubState.GOTO_ENTRANCE
+        
+        # Finish taking the order and let the customer(s) know to wait for food
+        robot.communication.say(f"I have accepted your order. Wait for food.")
+        robot.orders[-1].status = OrderStatus.WAITING_FOOD
+        robot.state = Action.FLOW.WANDER
 
-            # CHECK if need ID here
+        return self._SubState.GOTO_ENTRANCE
+            

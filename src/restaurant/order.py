@@ -15,12 +15,12 @@ class OrderStatus(Enum):
 class Order():
     next_id = 0
 
-    def __init__(self, table=None, people=None, contents=None):
+    def __init__(self, table=None, people=None):
         self.id = Order.next_id
         self.status = OrderStatus.WAITING_SEAT
         self.table = table
         self.people = people
-        self.contents = contents
+        self.contents = []
 
         Order.next_id += 1
         
