@@ -13,7 +13,7 @@ from nav_msgs.msg import OccupancyGrid, Odometry
 from sensor_msgs.msg import LaserScan
 from copy import deepcopy
 from threading import Lock
-from navigation import sensor_model
+from navigation import sensor_model 
 from navigation.util import getHeading, rotateQuaternion
 from navigation.histogram import Histogram
 
@@ -210,6 +210,48 @@ class Amcl():
         # Resample AMCL algorithm
         self.particlecloud = self.resample_amcl(self.particlecloud, ws)
 
+    def _generate_random_poses(self, num_poses=None):
+        """Generates random poses uniformly across the map.
+
+        This method generates `num_poses` random poses within the
+        boundaries of a map. All poses face randomly.
+
+        Args:
+            num_poses (int): the amount of poses to generate. If not
+                provided, `self.NUMBER_PREDICTED_READINGS` is used.
+        Return:
+            (geometry_msgs.msg.PoseArray): random particle poses
+        """
+        # Set default value
+        if num_poses is None:
+            num_poses = self.NUMBER_PREDICTED_READINGS
+        
+        # Initialize random particle array
+        poses_uniform = PoseArray()
+
+        # Define map constants
+        width = self.occupancy_map.info.width
+        height = self.occupancy_map.info.height
+        origin = self.occupancy_map.info.origin.position
+        resolution = self.occupancy_map.info.resolution
+
+        # While we don't have `num_poses` particles
+        while len(poses_uniform.poses) < num_poses:
+            y = np.random.randint(height)
+            x = np.random.randint(width)
+
+            # If the random position is within map boundaries
+            if self.occupancy_map.data[y * width + x] != -1:
+                pose = Pose()
+                theta = np.random.uniform(-np.pi, np.pi)
+                pose.position.x = x * resolution + origin.x
+                pose.position.y = y * resolution + origin.y
+                pose.orientation = rotateQuaternion(Quaternion(w=1), theta)
+
+                poses_uniform.poses.append(pose)
+
+        return poses_uniform    
+    
     def resample_amcl(self, poses, ws):
         """Performs full AMCL (KLD version) resampling.
 
@@ -305,7 +347,7 @@ class Amcl():
 
         # KLD sampling initialization
         MAX_NUM_PARTICLES = 500
-        eps = 0.45
+        eps = 0.08
         z = 0.99
         Mx = 0
 
