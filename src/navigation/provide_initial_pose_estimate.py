@@ -7,7 +7,7 @@ from tf.transformations import quaternion_from_euler
 def pub_init_pose():
     rospy.init_node('init_pos')
     pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size = 10)
-    rospy.sleep(1)
+    rospy.sleep(5)
     checkpoint = PoseWithCovarianceStamped()
 
     checkpoint.header.frame_id = "/map"

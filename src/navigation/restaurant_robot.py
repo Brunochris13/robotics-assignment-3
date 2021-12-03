@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 from geometry_msgs import msg
 import rospy
 from .provide_goal_pose import pub_goal_pose
 # import nav_msgs.msg Odometry
-from msg import Order
+# from msg.Order.msg import tableID
 
 import rospy
 import math
@@ -11,7 +12,7 @@ import signal
 from time import time
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
-from ..utils.geom import rotateQuaternion, getHeading
+from utils.geom import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
@@ -131,6 +132,7 @@ def main():
 
 if __name__=='__main__':
     rospy.init_node('restaurant_robot')
+    # rospy.init_node('restaurant')
     rate_interval = rospy.Rate(1)
     while not rospy.is_shutdown():
         main()
