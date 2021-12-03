@@ -1,6 +1,7 @@
 <launch>
     <!-- Arguments -->
     <arg name="world" default="$(find waiter_robot)/worlds/stage_restaurant.world"/>
+    <!-- <arg name="world" default="$(find waiter_robot)/worlds/stage_restaurant_small.world"/> -->
 
     <!-- Stage ROS -->
     <node pkg="stage_ros" name="stageros" type="stageros" args="$(arg world)"/>
