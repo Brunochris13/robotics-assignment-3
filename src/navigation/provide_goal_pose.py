@@ -2,82 +2,29 @@
 
 import rospy
 import math
-from geometry_msgs.msg import PoseStamped
-from tf.transformations import quaternion_from_euler
+import sys
+import signal
+from time import time
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
+from util import rotateQuaternion, getHeading
 
-def rotateQuaternion(q_orig, yaw):
-    """
-    Converts a basic rotation about the z-axis (in radians) into the
-    Quaternion notation required by ROS transform and pose messages.
-    
-    :Args:
-       | q_orig (geometry_msgs.msg.Quaternion): to be rotated
-       | yaw (double): rotate by this amount in radians
-    :Return:
-       | (geometry_msgs.msg.Quaternion) q_orig rotated yaw about the z axis
-     """
-    # Create a temporary Quaternion to represent the change in heading
-    q_headingChange = Quaternion()
-
-    p = 0
-    y = yaw / 2.0
-    r = 0
- 
-    sinp = math.sin(p)
-    siny = math.sin(y)
-    sinr = math.sin(r)
-    cosp = math.cos(p)
-    cosy = math.cos(y)
-    cosr = math.cos(r)
- 
-    q_headingChange.x = sinr * cosp * cosy - cosr * sinp * siny
-    q_headingChange.y = cosr * sinp * cosy + sinr * cosp * siny
-    q_headingChange.z = cosr * cosp * siny - sinr * sinp * cosy
-    q_headingChange.w = cosr * cosp * cosy + sinr * sinp * siny
-
-    # ----- Multiply new (heading-only) quaternion by the existing (pitch and bank) 
-    # ----- quaternion. Order is important! Original orientation is the second 
-    # ----- argument rotation which will be applied to the quaternion is the first 
-    # ----- argument. 
-    return multiply_quaternions(q_headingChange, q_orig)
+XY_TOLERANCE = 0.5
+ORIENTATION_TOLERANCE = 0.5
+MAX_TIME = 60.0  # Seconds
 
 
-def multiply_quaternions( qa, qb ):
-    """
-    Multiplies two quaternions to give the rotation of qb by qa.
-    
-    :Args:
-       | qa (geometry_msgs.msg.Quaternion): rotation amount to apply to qb
-       | qb (geometry_msgs.msg.Quaternion): to rotate by qa
-    :Return:
-       | (geometry_msgs.msg.Quaternion): qb rotated by qa.
-    """
-    combined = Quaternion()
-    
-    combined.w = (qa.w * qb.w - qa.x * qb.x - qa.y * qb.y - qa.z * qb.z)
-    combined.x = (qa.x * qb.w + qa.w * qb.x + qa.y * qb.z - qa.z * qb.y)
-    combined.y = (qa.w * qb.y - qa.x * qb.z + qa.y * qb.w + qa.z * qb.x)
-    combined.z = (qa.w * qb.z + qa.x * qb.y - qa.y * qb.x + qa.z * qb.w)
-    return combined
+def signal_handler(signal, frame):
+    print("\nInterrupted")
+    sys.exit(1)
 
 
-def getHeading(q):
-    """
-    Get the robot heading in radians from a Quaternion representation.
-    
-    :Args:
-        | q (geometry_msgs.msg.Quaternion): a orientation about the z-axis
-    :Return:
-        | (double): Equivalent orientation about the z-axis in radians
-    """
-    yaw = math.atan2(2 * (q.x * q.y + q.w * q.z),
-                     q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z)
-    return yaw
+signal.signal(signal.SIGINT, signal_handler)
+
 
 def pub_goal_pose(x, y, theta):
     rospy.init_node('goal_pos')
-    pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size = 10)
+    pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
     rospy.sleep(1)
     checkpoint = PoseStamped()
 
@@ -87,9 +34,61 @@ def pub_goal_pose(x, y, theta):
     checkpoint.pose.position.y = y
     checkpoint.pose.position.z = 0.0
 
-    checkpoint.pose.orientation = rotateQuaternion(Quaternion(w=1), theta)
+    checkpoint.pose.orientation.x = 0.0
+    checkpoint.pose.orientation.y = 0.0
+    checkpoint.pose.orientation.w = 1.0
+    checkpoint.pose.orientation.z = 0.0
+
+    checkpoint.pose.orientation = rotateQuaternion(
+        checkpoint.pose.orientation, theta)
 
     pub.publish(checkpoint)
+
+    rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped,
+                     _robot_pose_callback, queue_size=10)
+
+    global robot_x, robot_y, robot_orientation
+    robot_x = float('inf')
+    robot_y = float('inf')
+    robot_orientation = Quaternion()
+    robot_orientation.x = float('inf')
+    robot_orientation.y = float('inf')
+    robot_orientation.w = float('inf')
+    robot_orientation.z = float('inf')
+
+    init_time = time()
+    time_passed = 0
+    rate = rospy.Rate(1)
+    while time_passed < MAX_TIME and \
+        (abs(robot_x - x) > XY_TOLERANCE or
+         abs(robot_y - y) > XY_TOLERANCE or
+         abs(robot_orientation.x - checkpoint.pose.orientation.x) > ORIENTATION_TOLERANCE or
+         abs(robot_orientation.y - checkpoint.pose.orientation.y) > ORIENTATION_TOLERANCE or
+         abs(robot_orientation.w - checkpoint.pose.orientation.w) > ORIENTATION_TOLERANCE or
+         abs(robot_orientation.z - checkpoint.pose.orientation.z) > ORIENTATION_TOLERANCE):
+
+        # print("diff: ", abs(robot_orientation.w - checkpoint.pose.orientation.w))
+        # print("robot_orientation.w: ", robot_orientation.w)
+        # print("checkpoint.pose.orientation.w: ", checkpoint.pose.orientation.w)
+        # print()
+        time_passed = time() - init_time
+        rate.sleep()
+
+    if time_passed > MAX_TIME:
+        rospy.logwarn("Time Ran Out")
+        return False
+    else:
+        rospy.sleep(2)
+        rospy.loginfo("Goal Reached")
+        return True
+
+
+def _robot_pose_callback(pose):
+    global robot_x, robot_y, robot_orientation
+    robot_x = pose.pose.pose.position.x
+    robot_y = pose.pose.pose.position.y
+    robot_orientation = pose.pose.pose.orientation
+
 
 if __name__ == '__main__':
     try:
