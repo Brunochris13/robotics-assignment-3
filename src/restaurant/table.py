@@ -1,5 +1,5 @@
 import math
-from ..util.geom import is_in_circle
+from ..utils.geom import is_near
 
 class Table():
     def __init__(self, id, pos, max_people, entrance_pos=None, centre_pos=None):
@@ -18,7 +18,7 @@ class Table():
         
         radius = None # TODO e.g., sqrt(x^2 +y^2)
 
-        if not is_in_circle(self.pos, centre_pos, radius):
+        if not is_near(self.pos, centre_pos, radius):
             raise AttributeError("Table is outside restaurant boundaries!")
         
         table_distance_from_entrance = None # TODO

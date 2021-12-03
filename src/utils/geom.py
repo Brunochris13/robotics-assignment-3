@@ -1,6 +1,14 @@
 import math
-import time
 from geometry_msgs.msg import Quaternion
+
+
+def is_near(source_pos, target_pos, radius):
+    pass
+
+
+def is_facing(source_pos, source_angle, target_pos):
+    pass
+
 
 def rotateQuaternion(q_orig, yaw):
     """

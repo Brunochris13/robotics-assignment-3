@@ -4,7 +4,7 @@ from gtts import gTTS
 import os
 import subprocess
 import speech_recognition as sr
-from ..state_actions import Action
+from ..actions import Action
 
 class Communication():
     def __init__(self):
@@ -115,7 +115,7 @@ class Communication():
                 voice_data = input("Type your answer:")
                 break
         
-        return voice_data     
+        return voice_data
 
 
     def yesno_to_bool(self, voice_data):

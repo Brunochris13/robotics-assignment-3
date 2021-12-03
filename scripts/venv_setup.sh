@@ -1,7 +1,7 @@
 # Install the dependent packages
-sudo apt install portaudio19-dev python3-pyaudio
+sudo apt install portaudio19-dev python3-pyaudio ffmpeg
 
-# Create virtual environment inside waiter_bot
+# Create virtual environment inside waiter_robot
 cd ~/catkin_ws/src/waiter_robot/
 python3 -m venv venv
 source venv/bin/activate

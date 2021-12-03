@@ -8,11 +8,10 @@ class _BaseAction(Enum):
     FINISH = auto() # terminate 
 
 class _FlowAction(Enum):
+    BEGIN_ORDER = auto()
+    BRING_FOOD = auto()
+    END_ORDER = auto()
     WANDER = auto()
-    PHASE1 = auto() # meet people, guide to table, take order
-    # might need a mid-phase for bringing food to ppl
-    PHASE2 = auto() # goto table, calculate bill
-
 
 class Action(Enum):
     BASE = _BaseAction()

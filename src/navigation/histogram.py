@@ -1,5 +1,5 @@
 import numpy as np
-from . util import getHeading
+from ..utils.geom import getHeading
 
 class Histogram():
     """
