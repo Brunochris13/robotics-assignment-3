@@ -7,6 +7,7 @@ WEIGHTS_DIR = "../../../resources/weights/"
 
 class Vision():
     def __init__(self):
+        return
         print(os.path.isdir(WEIGHTS_DIR))
         print(os.getcwd())
         # https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt

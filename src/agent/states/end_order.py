@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from abstract_state import State
+from .abstract_state import State
 
 class EndOrder(State):
     class _SubState(Enum):
@@ -11,11 +11,11 @@ class EndOrder(State):
         self.substate = self._SubState.GOTO_TABLE
     
     def do(self, robot):
-        if self.substate is 1:
+        if self.substate == 1:
             self.substate = self.goto_pos(robot, robot.active_order.table.pos)
-        elif self.substate is 2:
+        elif self.substate == 2:
             self.substate = self.ask_if_finished(robot)
-        elif self.substate is 3:
+        elif self.substate == 3:
             self.substate = self.receive_payment(robot)
 
     def ask_if_finished(self, robot):

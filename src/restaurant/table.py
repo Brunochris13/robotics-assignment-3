@@ -1,5 +1,5 @@
 import math
-from ..utils.geom import is_near
+from utils.geom import is_near
 
 class Table():
     def __init__(self, id, pos, max_people, entrance_pos=None, centre_pos=None):
@@ -8,6 +8,20 @@ class Table():
         self.max_people = max_people
         self.age_group = self.assign_age_group(entrance_pos, centre_pos)
     
+
+    def describe(self, show_id=True, show_pose=True, show_max_people=False):
+        description = ""
+
+        if show_id:
+            description += f"{self.id} "
+        
+        if show_pose:
+            description += f"({self.pos.position.x}, {self.pos.position.y}) "
+        
+        if show_max_people:
+            description += f"[MAX: {self.max_people}]"
+
+        return description
 
     def assign_age_group(self, entrance_pos, centre_pos):
         MAX_AGE = 100

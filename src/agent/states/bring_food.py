@@ -1,6 +1,6 @@
 from enum import Enum, auto
-from abstract_state import State
-from wander import Wander
+from .abstract_state import State
+from ..actions import Action
 
 class BringFood(State):
     class _SubState(Enum):
@@ -24,7 +24,7 @@ class BringFood(State):
         """Serves food to people.
         """
         robot.communication.say("Enjoy your meal. You have 4 seconds to eat.")
-        robot.state = Wander()
+        robot.change_state(Action.FLOW.WANDER)
 
         return self._SubState.GOTO_KITCHEN
         

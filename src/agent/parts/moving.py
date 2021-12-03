@@ -1,4 +1,4 @@
-from ...navigation.provide_goal_pose import pub_goal_pose
+from navigation.provide_goal_pose import pub_goal_pose
 
 
 class Moving():

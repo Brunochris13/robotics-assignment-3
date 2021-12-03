@@ -2,14 +2,14 @@ from enum import Enum, auto
 
 from restaurant.order import OrderStatus
 from .actions import Action
-from ..restaurant.restaurant import Restaurant
-from parts.communication import Communication
-from parts.vision import Vision
-from parts.moving import Moving
-from states.wander import Wander
-from states.begin_order import BeginOrder
-from states.bring_food import BringFood
-from states.end_order import EndOrder
+from restaurant.restaurant import Restaurant
+from .parts.communication import Communication
+from .parts.vision import Vision
+from .parts.moving import Moving
+from .states.wander import Wander
+from .states.begin_order import BeginOrder
+from .states.bring_food import BringFood
+from .states.end_order import EndOrder
 
 
 class Status(Enum):
@@ -31,6 +31,17 @@ class Robot():
     def update(self):
         self.state.do(self)
         self.restaurant.update(self.orders)
+
+    
+    def change_state(self, action):
+        if action is Action.FLOW.WANDER:
+            self.state = Wander()
+        elif action is Action.FLOW.BEGIN_ORDER:
+            self.state = BeginOrder()
+        elif action is Action.FLOW.BRING_FOOD:
+            self.state = BringFood()
+        elif action is Action.FLOW.END_ORDER:
+            self.state = EndOrder()
     
 
     def end_order(self, order_id=None, success=True):

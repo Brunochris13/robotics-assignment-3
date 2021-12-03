@@ -1,9 +1,7 @@
+from agent.actions import Action
+import rospy
 import random
-from abstract_state import State
-from begin_order import BeginOrder
-from bring_food import BringFood
-from end_order import EndOrder
-
+from .abstract_state import State
 class Wander(State):
     def __init__(self):
         pass
@@ -19,8 +17,12 @@ class Wander(State):
     def wander(self, robot):
         """The robot is moved to some random position in the map.
         """
-        random_pos = random.choice([table.pos for table in robot.restaurant.tables])
-        self.goto_pos(random_pos)
+        random_table = random.choice(robot.restaurant.tables)
+
+        print(f"Approaching table {random_table.describe()}")
+
+        random_pose = random_table.pos
+        self.goto_pos(robot, random_pose)
 
 
     def switch(self, robot):
@@ -31,14 +33,14 @@ class Wander(State):
         for order_id in robot.restaurant.get_food_ready():
             if order_id in order_ids:
                 robot.active_order = robot.orders[order_ids.index(order_id)]
-                robot.state = BringFood()
+                robot.change_state(Action.FLOW.BRING_FOOD)
                 return
         
         for order_id in robot.restaurant.get_bill_ready():
             if order_id in order_ids:
                 robot.active_order = robot.orders[order_ids.index(order_id)]
-                robot.state = EndOrder()
+                robot.change_state(Action.FLOW.END_ORDER)
                 return
         
         if robot.restaurant.new_customer_exists():
-            robot.state = BeginOrder()
+            robot.state = robot.change_state(Action.FLOW.BEGIN_ORDER)
