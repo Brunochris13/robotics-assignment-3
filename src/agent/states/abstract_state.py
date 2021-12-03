@@ -75,6 +75,7 @@ class State(ABC):
         Args:
             robot (Robot): The robot whose position to update
         """
+        """
         # Completions
         at_pos = [
             is_near(pos, robot.pos, radius),
@@ -88,5 +89,8 @@ class State(ABC):
         if not at_pos[1]:
             # Face more towards table
             robot.moving.turn_to(pos)
+        """
+
+        robot.moving.move_to(pos)
         
-        return self.next(self.substate, all(at_pos))
+        return self.next(self.substate)# self.next(self.substate, all(at_pos))

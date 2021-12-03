@@ -1,3 +1,4 @@
+import random
 from abstract_state import State
 from begin_order import BeginOrder
 from bring_food import BringFood
@@ -12,13 +13,14 @@ class Wander(State):
         """Wanders the robot and checks if it should switch state.
         """
         self.wander(robot)
-        self.switch(robot)
+        # self.switch(robot)
     
 
     def wander(self, robot):
         """The robot is moved to some random position in the map.
         """
-        pass
+        random_pos = random.choice([table.pos for table in robot.restaurant.tables])
+        self.goto_pos(random_pos)
 
 
     def switch(self, robot):

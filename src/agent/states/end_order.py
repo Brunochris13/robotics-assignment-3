@@ -11,5 +11,16 @@ class EndOrder(State):
         self.substate = self._SubState.GOTO_TABLE
     
     def do(self, robot):
+        if self.substate is 1:
+            self.substate = self.goto_pos(robot, robot.active_order.table.pos)
+        elif self.substate is 2:
+            self.substate = self.ask_if_finished(robot)
+        elif self.substate is 3:
+            self.substate = self.receive_payment(robot)
+
+    def ask_if_finished(self, robot):
+        pass
+
+    def receive_payment(self, robot):
         pass
 

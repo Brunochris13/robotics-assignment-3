@@ -7,7 +7,7 @@ import signal
 from time import time
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
-from util import rotateQuaternion, getHeading
+from ..utils.geom import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
