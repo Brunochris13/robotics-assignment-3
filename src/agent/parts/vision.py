@@ -49,9 +49,9 @@ class Vision():
         # convert the frame into a blob to be ready for NN input
         blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), (104, 177.0, 123.0))
         # set the image as input to the NN
-        face_net.setInput(blob)
+        self.face_net.setInput(blob)
         # perform inference and get predictions
-        output = np.squeeze(face_net.forward())
+        output = np.squeeze(self.face_net.forward())
         # initialize the result list
         faces = []
         # Loop over the faces detected
