@@ -11,16 +11,13 @@ from util import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 THETA_TOLERANCE = math.pi / 2
-MAX_TIME = 60.0
-
+MAX_TIME = 60.0 # Seconds
 
 def signal_handler(signal, frame):
     print("\nInterrupted")
     sys.exit(1)
 
-
 signal.signal(signal.SIGINT, signal_handler)
-
 
 def pub_goal_pose(x, y, theta):
     rospy.init_node('goal_pos')
