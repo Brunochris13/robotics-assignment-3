@@ -55,10 +55,10 @@ def pub_goal_pose(x, y, theta):
 
         # print("x_diff: ", abs(robot_x - x))
         # print("y_diff: ", abs(robot_y - y))
-        print("theta_diff: ", abs(robot_theta - theta))
-        print("robot_theta: ", robot_theta)
-        print("theta: ", theta)
-        print()
+        # print("theta_diff: ", abs(robot_theta - theta))
+        # print("robot_theta: ", robot_theta)
+        # print("theta: ", theta)
+        # print()
         time_passed = time() - init_time
         rate.sleep()
 
