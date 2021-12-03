@@ -13,7 +13,7 @@ def pub_init_pose():
     checkpoint.header.frame_id = "/map"
 
     checkpoint.pose.pose.position.x = 0.0
-    checkpoint.pose.pose.position.y = 0.0
+    checkpoint.pose.pose.position.y = -7.0
     checkpoint.pose.pose.position.z = 0.0
 
     [x,y,z,w]=quaternion_from_euler(0.0,0.0,0.0)
