@@ -1,3 +1,5 @@
+#!/usr/bin/env python 
+
 import rospy
 from .provide_goal_pose import pub_goal_pose
 # import nav_msgs.msg Odometry
@@ -109,9 +111,9 @@ class TableMonitor(object):
         rospy.loginfo('x: {}, y: {}'.format(x, y))
         
         # you don't need to create class object everytime, if you want you can just publish a single type
-        order = Order()
-        order.tableID = random.random(x+y)
-        self._pub.publish(order)
+        #order = Order()
+        #order.tableID = random.random(x+y)
+        #self._pub.publish(order)
 
 def main():
     
