@@ -10,6 +10,7 @@
 
   <!-- AMCL -->
   <node pkg="amcl" name="amcl" type="amcl" args="scan:=base_scan"/>
+  <!-- <node pkg="waiter_robot" name="amcl" type="amcl.py" args="scan:=base_scan"/> -->
 
   <!-- Provide Initial Pose Estimate -->
   <node pkg="waiter_robot" name="provide_initial_pose_estimate" type="provide_initial_pose_estimate.py"/>
@@ -22,7 +23,7 @@
         <rosparam file="$(find waiter_robot)/config/global_costmap_params.yaml" command="load" />
         <rosparam file="$(find waiter_robot)/config/base_local_planner_params.yaml" command="load" />
         <param name="base_global_planner" value="navfn/NavfnROS" />
-        <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+        <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
     </node>
 
   <!-- rviz -->
