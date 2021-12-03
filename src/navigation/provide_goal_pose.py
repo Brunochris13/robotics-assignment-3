@@ -75,11 +75,11 @@ def pub_goal_pose(x, y, theta):
         rate.sleep()
 
     if time_passed > MAX_TIME:
-        print("Time Ran Out")
+        rospy.logwarn("Time Ran Out")
         return False
     else:
         rospy.sleep(2)
-        print("Goal Reached")
+        rospy.loginfo("Goal Reached")
         return True
 
 
@@ -92,6 +92,6 @@ def _robot_pose_callback(pose):
 
 if __name__ == '__main__':
     try:
-        pub_goal_pose(0.0, 0.0, -math.pi)
+        pub_goal_pose(0.0, 0.0, 0.0)
     except rospy.ROSInterruptException:
         pass
