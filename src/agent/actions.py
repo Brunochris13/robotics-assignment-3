@@ -14,5 +14,5 @@ class _FlowAction(Enum):
     WANDER = auto()
 
 class Action(Enum):
-    BASE = _BaseAction()
-    FLOW = _FlowAction()
+    BASE = _BaseAction(1)
+    FLOW = _FlowAction(1)

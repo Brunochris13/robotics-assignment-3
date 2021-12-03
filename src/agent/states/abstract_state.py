@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ...utils.geom import is_near, is_facing
+from utils.geom import is_near, is_facing
 
 class State(ABC):
     def __init__(self):

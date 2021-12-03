@@ -1,5 +1,5 @@
 from geometry_msgs.msg import Pose, Point
-from table import Table
+from .table import Table
 
 
 ITEMS = {
@@ -31,7 +31,7 @@ class Restaurant():
         self.kitchen = Pose(position=Point(**ITEMS["kitchen"]["pose"]["position"])) # read from file/db (position)
         self.centre = Pose(position=Point(**ITEMS["centre"]["pose"]["position"])) # read from file/db (position)
         self.tables = [
-            Table(id=t["id"], pos=Pose(position=Point(**t["pose"]["position"])), num_people=t["num_people"])
+            Table(id=t["id"], pos=Pose(position=Point(**t["pose"]["position"])), max_people=t["num_people"])
             for t in ITEMS["tables"]
         ]
         self.order_history = []

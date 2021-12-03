@@ -1,8 +1,8 @@
 import random
 from enum import Enum, auto
-from abstract_state import State
+from .abstract_state import State
 from ..actions import Action
-from ...restaurant.order import Order, OrderStatus
+from restaurant.order import Order, OrderStatus
 from .wander import Wander
 
 

@@ -1,6 +1,32 @@
 import math
-from geometry_msgs.msg import Quaternion
+import time
+from geometry_msgs.msg import Quaternion, PoseStamped, PoseWithCovarianceStamped
 
+def poseCovMaker(x,y):
+	pose =  PoseWithCovarianceStamped()
+	pose.pose.pose.position.x = x
+	pose.pose.pose.position.y = y
+	pose.pose.pose.position.z = 0
+	pose.pose.pose.orientation.x = 0
+	pose.pose.pose.orientation.y = 0
+	pose.pose.pose.orientation.z = 0
+	pose.pose.pose.orientation.w = 0
+	pose.header.stamp.secs = time.time()
+	pose.header.frame_id = "map"
+	return pose
+
+def poseMaker(x,y,z,w):
+	pose =  PoseStamped()
+	pose.pose.position.x = x
+	pose.pose.position.y = y
+	pose.pose.position.z = 0
+	pose.pose.orientation.x = 0
+	pose.pose.orientation.y = 0
+	pose.pose.orientation.z = 0
+	pose.pose.orientation.w = 0
+	pose.header.stamp.secs = time.time()
+	pose.header.frame_id = "map"
+	return pose
 
 def is_near(source_pos, target_pos, radius):
     pass

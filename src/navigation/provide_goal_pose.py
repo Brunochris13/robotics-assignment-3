@@ -7,7 +7,7 @@ import signal
 from time import time
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
-from ..utils.geom import rotateQuaternion, getHeading
+from utils.geom import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
@@ -33,6 +33,8 @@ def pub_goal_pose(x, y, theta):
     checkpoint.pose.position.x = x
     checkpoint.pose.position.y = y
     checkpoint.pose.position.z = 0.0
+
+    print("x=", x, "y=",y)
 
     checkpoint.pose.orientation.x = 0.0
     checkpoint.pose.orientation.y = 0.0
