@@ -1,7 +1,8 @@
+from geometry_msgs import msg
 import rospy
 from .provide_goal_pose import pub_goal_pose
 # import nav_msgs.msg Odometry
-# from ..messages.order.msg Order
+from msg import Order
 
 import rospy
 import math
@@ -101,8 +102,7 @@ class TableMonitor(object):
     def __init__(self, pub, tables):
         self._pub = pub
         self._tables = tables
-        rospy.init_node('restaurant_robot')
-
+    
     def callback(self, msg):
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
