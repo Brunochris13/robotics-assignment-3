@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+import rospy
+from .provide_goal_pose import pub_goal_pose
+# import nav_msgs.msg Odometry
+# from ..messages.order.msg Order
 
 import rospy
 import math
@@ -7,7 +10,7 @@ import signal
 from time import time
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
-from utils.geom import rotateQuaternion, getHeading
+from ..utils.geom import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
@@ -23,7 +26,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def pub_goal_pose(x, y, theta):
-    rospy.init_node('goal_pos')
     pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
     rospy.sleep(1)
     checkpoint = PoseStamped()
@@ -33,8 +35,6 @@ def pub_goal_pose(x, y, theta):
     checkpoint.pose.position.x = x
     checkpoint.pose.position.y = y
     checkpoint.pose.position.z = 0.0
-
-    print("x=", x, "y=",y)
 
     checkpoint.pose.orientation.x = 0.0
     checkpoint.pose.orientation.y = 0.0
@@ -76,13 +76,13 @@ def pub_goal_pose(x, y, theta):
         time_passed = time() - init_time
         rate.sleep()
 
-    if time_passed > MAX_TIME:
-        rospy.logwarn("Time Ran Out")
-        return False
-    else:
-        rospy.sleep(2)
-        rospy.loginfo("Goal Reached")
-        return True
+    # if time_passed > MAX_TIME:
+    #     rospy.logwarn("Time Ran Out")
+    #     return False
+    # else:
+    #     rospy.sleep(2)
+    #     rospy.loginfo("Goal Reached")
+    #     return True
 
 
 def _robot_pose_callback(pose):
@@ -92,10 +92,46 @@ def _robot_pose_callback(pose):
     robot_orientation = pose.pose.pose.orientation
 
 
-if __name__ == '__main__':
-    try:
-        pub_goal_pose(0.0, 0.0, 0.0)
-        pub_goal_pose(0.0, -7.0, 0.0)
+
+
+tables = []
+# tables.append(<table id>, <x>, <y>)
+
+class TableMonitor(object):
+    def __init__(self, pub, tables):
+        self._pub = pub
+        self._tables = tables
+        rospy.init_node('restaurant_robot')
+
+    def callback(self, msg):
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        rospy.loginfo('x: {}, y: {}'.format(x, y))
         
-    except rospy.ROSInterruptException:
-        pass
+        # you don't need to create class object everytime, if you want you can just publish a single type
+        order = Order()
+        order.tableID = random.random(x+y)
+        self._pub.publish(order)
+
+def main():
+    
+    # # rospy.Publisher("<topic name>", <message class>, <queue_size>)
+    # pub = rospy.Publisher('order', Order, queue_size=10)
+    # monitor = TableMonitor(pub, tables)
+    pub_goal_pose(0.0, 0.0, 0.0)
+    pub_goal_pose(0.0, 7.0, 0.0)
+    pub_goal_pose(0.0, 0.0, 0.0)
+    pub_goal_pose(0.0, -7.0, 0.0)
+    pub_goal_pose(4.0, 0.0, 0.0)
+    pub_goal_pose(0.0, 0.0, 0.0)
+    pub_goal_pose(-4.0, 0.0, 0.0)
+
+    # # rospy.Subscriber("<topic name>", <message class>, <callback>)
+    # rospy.Subscriber("/odom", Odometry, monitor.callback)
+
+if __name__=='__main__':
+    rospy.init_node('restaurant_robot')
+    rate_interval = rospy.Rate(1)
+    while not rospy.is_shutdown():
+        main()
+        rate_interval.sleep()
