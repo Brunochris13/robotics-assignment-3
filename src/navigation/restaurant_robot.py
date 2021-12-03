@@ -15,6 +15,7 @@ class TableMonitor(object):
         y = msg.pose.pose.position.y
         rospy.loginfo('x: {}, y: {}'.format(x, y))
         
+        # you don't need to create class object everytime, if you want you can just publish a single type
         order = Order()
         order.tableID = random.random(x+y)
         self._pub.publish(order)
@@ -22,8 +23,8 @@ class TableMonitor(object):
 def main():
     rospy.init_node('restaurant_robot')
     
-    # rospy.Publisher("<topic name>", <message class>, OPTION:<queue_size>)
-    pub = rospy.Publisher('order', Order)
+    # rospy.Publisher("<topic name>", <message class>, <queue_size>)
+    pub = rospy.Publisher('order', Order, queue_size=10)
     monitor = TableMonitor(pub, tables)
 
     # rospy.Subscriber("<topic name>", <message class>, <callback>)
