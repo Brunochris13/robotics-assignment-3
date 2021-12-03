@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from geometry_msgs import msg
 import rospy
-from .provide_goal_pose import pub_goal_pose
 # import nav_msgs.msg Odometry
 # from msg.Order.msg import tableID
 

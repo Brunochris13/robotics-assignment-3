@@ -15,7 +15,7 @@
   <!-- <node pkg="waiter_robot" name="amcl" type="amcl.py" args="scan:=base_scan"/> -->
 
  <!-- Robot node -->
-<!-- <node pkg="waiter_robot" name="restaurant_robot" type="restaurant_robot.py" output="screen"/> -->
+<node pkg="waiter_robot" name="restaurant_robot" type="restaurant_robot.py"/>
  <!-- Restaurant node -->
 <!-- <node pkg="waiter_robot" name="restaurant" type="restaurant_robot.py" output="screen"/> -->
 
