@@ -7,8 +7,8 @@ define square_table model
 
 define table model
 (
-    size [4 2 1]
-    origin [2 1 0 0]
+    size [3 2 1]
+    origin [1.5 1 0 0]
     color "sandy brown"
 )
 
@@ -18,9 +18,17 @@ define entrance model
     color "green"
 )
 
-define kitchen model
+define kitchen_counter_x model
 (
-    size [4 1 1]
+    size [3.5 0.5 1]
+    origin [1.75 0.25 0 0]
+    color "yellow"
+)
+
+define kitchen_counter_y model
+(
+    size [0.5 2 1]
+    origin [0.25 1 0 0]
     color "yellow"
 )
 
@@ -81,15 +89,31 @@ floorplan
 ( 
   name "stage_restaurant"
   bitmap "stage_restaurant.pgm"
-  size [14 14 3]
+  size [10 16 3]
   pose [ 0 0 0 0 ]
 )
 
 # throw in a robot
-pioneer( pose [ 0 0 0 0 ] name "robot" color "blue")
+pioneer( pose [ 0 -7 0 0 ] name "robot" color "blue")
 
-entrance( pose [0 -7 0 0])
-# kitchen( pose [0 9.75 0 0])
+entrance( pose [0 -8 0 0])
 
-# Tables
-square_table( pose [-6 -6 0 0])
+# Kitchen Counters
+kitchen_counter_x( pose [1.5 5 0 0])
+kitchen_counter_y( pose [1   5 0 0])
+
+# Tables Column 1
+square_table( pose [-3.5 -7 0 0])
+table(        pose [-4 -3 0 0])
+square_table( pose [-3.5  1 0 0])
+table(        pose [-4  5 0 0])
+
+# Tables Column 2
+# square_table( pose [-1 -5 0 0])
+# square_table( pose [-1 -1 0 0])
+# square_table( pose [-1  3 0 0])
+
+# Tables Column 3
+square_table( pose [ 1.5 -7 0 0])
+table(        pose [ 1 -3 0 0])
+square_table( pose [ 1.5  1 0 0])
