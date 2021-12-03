@@ -1,27 +1,75 @@
-from enum import Enum
 from enum import Enum, auto
-from agent.parts.communication import Communication
-from states.state_wander import Wander
+
+from restaurant.order import OrderStatus
+from .actions import Action
+from ..restaurant.restaurant import Restaurant
+from parts.communication import Communication
+from parts.vision import Vision
+from parts.moving import Moving
+from states.wander import Wander
+from states.begin_order import BeginOrder
+from states.bring_food import BringFood
+from states.end_order import EndOrder
 
 
 class Status(Enum):
     AVAILABLE = auto()
     BUSY = auto()
-    SPEAKING = auto()
 
 
 class Robot():
     def __init__(self):
         self.orders = []
-        self.status = Status.AVAILABLE
-        self.state = Wander(self)
+        self.active_order = None
+        self.state = Wander()
+        self.moving = Moving()
+        self.vision = Vision()
         self.communication = Communication()
+        self.restaurant = Restaurant()
 
 
     def update(self):
-        pass
+        self.state.do(self)
+        self.restaurant.update(self.orders)
+    
+
+    def end_order(self, order_id=None, success=True):
+        """Finishes the order of the provided id.
+
+        Args:
+            order_id (int): The id of the order to be cancelled
+        """
+        order = self.get_order_by_id(order_id)
+
+        if order is self.active_order:
+            self.active_order = None
+
+        if success:
+            order.status = OrderStatus.FINISHED
+        else:
+            order.status = OrderStatus.CANCELED
+        
+        self.restaurant.order_history.append(order)
+        self.orders.remove(order)
 
 
+    def get_order_by_id(self, order_id=None):
+        """Gets the order object by its ID.
+
+        Args:
+            order_id (int): The ID of the requested order
+
+        Returns:
+            (Order): An order object whose ID is `order_id`.
+        """
+        if order_id is None:
+            order_id = self.active_order.id
+        
+        order_ids = [order.id for order in self.orders]
+        return self.orders[order_ids.index(order_id)]
+
+
+    """
     def cont(self, callback, criteria, params1=[], params2=[]):
         if self.status == Status.BUSY:
             # Check if is has finished
@@ -35,4 +83,5 @@ class Robot():
             callback(*params1)
         
         return False
+    """
 
