@@ -1,4 +1,5 @@
 <launch>
+  <param name="use_sim_time" value="true"/>
   <!-- Arguments -->
   <!-- <arg name="map_file" default="$(find waiter_robot)/maps/stage_restaurant.yaml"/> -->
   <arg name="map_file" default="$(find waiter_robot)/maps/stage_restaurant_small.yaml"/>
