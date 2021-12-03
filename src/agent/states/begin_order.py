@@ -1,7 +1,6 @@
 import random
 from enum import Enum, auto
 from abstract_state import State
-from ...util.geom import is_near, is_facing
 from ..actions import Action
 from ...restaurant.order import Order, OrderStatus
 from .wander import Wander
