@@ -1,2 +1,0 @@
-class ActionInvoker():
-    pass

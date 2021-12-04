@@ -1,22 +1,25 @@
+import os
 import cv2
 import numpy as np
 
-class AgeGenderDetector:
+WEIGHTS_DIR = "../../../resources/weights/"
+# WEIGHTS_DIR = "resources/weights"
 
-    """
-    Age and Gender Detector based on faces
-    """
+class Vision():
     def __init__(self):
+        return
+        print(os.path.isdir(WEIGHTS_DIR))
+        print(os.getcwd())
         # https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt
-        self.FACE_PROTO = "weights/deploy.prototxt.txt"
+        self.FACE_PROTO = WEIGHTS_DIR + "deploy.prototxt.txt"
         # https://raw.githubusercontent.com/opencv/opencv_3rdparty/dnn_samples_face_detector_20180205_fp16/res10_300x300_ssd_iter_140000_fp16.caffemodel
-        self.FACE_MODEL = "weights/res10_300x300_ssd_iter_140000_fp16.caffemodel"
+        self.FACE_MODEL = WEIGHTS_DIR + "res10_300x300_ssd_iter_140000_fp16.caffemodel"
         # The gender model architecture
         # https://drive.google.com/open?id=1W_moLzMlGiELyPxWiYQJ9KFaXroQ_NFQ
-        self.GENDER_MODEL = 'weights/deploy_gender.prototxt'
+        self.GENDER_MODEL = WEIGHTS_DIR + 'deploy_gender.prototxt'
         # The gender model pre-trained weights
         # https://drive.google.com/open?id=1AW3WduLk1haTVAxHOkVS_BEzel1WXQHP
-        self.GENDER_PROTO = 'weights/gender_net.caffemodel'
+        self.GENDER_PROTO = WEIGHTS_DIR + 'gender_net.caffemodel'
         # Each Caffe Model impose the shape of the input image also image preprocessing is required like mean
         # substraction to eliminate the effect of illunination changes
         self.MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
@@ -24,10 +27,10 @@ class AgeGenderDetector:
         self.GENDER_LIST = ['Male', 'Female']
         # The model architecture
         # download from: https://drive.google.com/open?id=1kiusFljZc9QfcIYdU2s7xrtWHTraHwmW
-        self.AGE_MODEL = 'weights/deploy_age.prototxt'
+        self.AGE_MODEL = WEIGHTS_DIR + 'deploy_age.prototxt'
         # The model pre-trained weights
         # download from: https://drive.google.com/open?id=1kWv0AjxGSN0g31OeJa02eBGM0R_jcjIl
-        self.AGE_PROTO = 'weights/age_net.caffemodel'
+        self.AGE_PROTO = WEIGHTS_DIR + 'age_net.caffemodel'
         # Represent the 8 age classes of this CNN probability layer
         self.AGE_INTERVALS = ['(0, 2)', '(4, 6)', '(8, 12)', '(15, 20)',
                          '(25, 32)', '(38, 43)', '(48, 53)', '(60, 100)']
@@ -42,13 +45,14 @@ class AgeGenderDetector:
         # Load gender prediction model
         self.gender_net = cv2.dnn.readNetFromCaffe(self.GENDER_MODEL, self.GENDER_PROTO)
 
+
     def get_faces(self, frame, confidence_threshold=0.5):
         # convert the frame into a blob to be ready for NN input
         blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), (104, 177.0, 123.0))
         # set the image as input to the NN
-        face_net.setInput(blob)
+        self.face_net.setInput(blob)
         # perform inference and get predictions
-        output = np.squeeze(face_net.forward())
+        output = np.squeeze(self.face_net.forward())
         # initialize the result list
         faces = []
         # Loop over the faces detected
@@ -71,6 +75,7 @@ class AgeGenderDetector:
                 faces.append((start_x, start_y, end_x, end_y))
         return faces
 
+
     def display_img(self, title, img):
         """Displays an image on screen and maintains the output until the user presses a key"""
         # Display Image on screen
@@ -79,6 +84,7 @@ class AgeGenderDetector:
         cv2.waitKey(0)
         # Destroy windows when user presses a key
         cv2.destroyAllWindows()
+
 
     def image_resize(self, image, width = None, height = None, inter = cv2.INTER_AREA):
         # initialize the dimensions of the image to be resized and
@@ -104,6 +110,7 @@ class AgeGenderDetector:
         # resize the image
         return cv2.resize(image, dim, interpolation = inter)
 
+
     def get_gender_predictions(self, face_img):
         blob = cv2.dnn.blobFromImage(
             image=face_img, scalefactor=1.0, size=(227, 227),
@@ -120,6 +127,7 @@ class AgeGenderDetector:
         )
         self.age_net.setInput(blob)
         return self.age_net.forward()
+
 
     def predict_age_and_gender(self, input_path: str):
         """Predict the gender of the faces showing in the image"""
@@ -175,10 +183,23 @@ class AgeGenderDetector:
         # # Cleanup
         # cv2.destroyAllWindows()
 
+    
+    def see(self):
+        """Gets the list of genders and ages representing each person.
+
+        Returns:
+            (list(tuple(bool, int))): 
+        """
+        return []
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    import sys
-    input_path = sys.argv[1]
-    detector = AgeGenderDetector()
-    detector.predict_age_and_gender(input_path)
+    pass
+    #import sys
+    #input_path = sys.argv[1]
+    #detector = Vision()
+    #detector.predict_age_and_gender(input_path)
+    
+    #def see(self, source=None):
+    #    pass

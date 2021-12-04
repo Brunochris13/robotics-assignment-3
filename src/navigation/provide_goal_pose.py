@@ -6,10 +6,9 @@ import sys
 import signal
 from time import time
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Quaternion, Twist
-from actionlib_msgs.msg import GoalID
 from move_base_msgs.msg import MoveBaseAction
 from actionlib import SimpleActionClient
-from util import rotateQuaternion, getHeading
+from utils.geom import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5

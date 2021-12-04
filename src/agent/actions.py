@@ -1,18 +1,18 @@
 from enum import Enum, auto
 
-class _LogicAction(Enum):
+class _BaseAction(Enum):
     ACCEPT = auto() # proceed to the next valid state
     REJECT = auto() # proceed to an alternative state
     REPEAT = auto() # repeat the previous state
     IGNORE = auto() # remove the previous state
     FINISH = auto() # terminate 
 
-class _BaseAction(Enum):
-    SEE = auto()
-    SPEAK = auto()
-    LISTEN = auto()
-    MOVE = auto()
+class _FlowAction(Enum):
+    BEGIN_ORDER = auto()
+    BRING_FOOD = auto()
+    END_ORDER = auto()
+    WANDER = auto()
 
 class Action(Enum):
-    LOGIC = _LogicAction()
-    BASE = _BaseAction()
+    BASE = _BaseAction(1)
+    FLOW = _FlowAction(1)
