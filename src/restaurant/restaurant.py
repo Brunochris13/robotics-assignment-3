@@ -1,5 +1,6 @@
 from geometry_msgs.msg import Pose, Point
 from .table import Table
+from utils.geom import make_pose
 
 
 ITEMS = {
@@ -31,7 +32,8 @@ class Restaurant():
         self.kitchen = Pose(position=Point(**ITEMS["kitchen"]["pose"]["position"])) # read from file/db (position)
         self.centre = Pose(position=Point(**ITEMS["centre"]["pose"]["position"])) # read from file/db (position)
         self.tables = [
-            Table(id=t["id"], pos=Pose(position=Point(**t["pose"]["position"])), max_people=t["num_people"])
+            # Pose(position=Point(**t["pose"]["position"]))
+            Table(id=t["id"], pos=make_pose(t["pose"]["position"]["x"] + (1 if t["type"] == "square" else 1.5), t["pose"]["position"]["y"] + 1), max_people=t["num_people"])
             for t in ITEMS["tables"]
         ]
         self.order_history = []

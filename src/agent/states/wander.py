@@ -2,13 +2,17 @@ from agent.actions import Action
 import rospy
 import random
 from .abstract_state import State
+
 class Wander(State):
     def __init__(self):
         pass
 
 
-    def do(self, robot):
-        """Wanders the robot and checks if it should switch state.
+    def update(self, robot):
+        """Simulates wandering and checks if it should switch state.
+
+        Args:
+            robot (Robot): The robot to move randomly
         """
         self.wander(robot)
         # self.switch(robot)
@@ -16,13 +20,17 @@ class Wander(State):
 
     def wander(self, robot):
         """The robot is moved to some random position in the map.
+
+        Args:
+            robot (Robot): The robot to move to some random position
         """
+        # Choose a random table to move to in the restaurant
         random_table = random.choice(robot.restaurant.tables)
 
         print(f"Approaching table {random_table.describe()}")
 
         random_pose = random_table.pos
-        self.goto_pos(robot, random_pose)
+        self.goto_pose(robot, random_pose)
 
 
     def switch(self, robot):

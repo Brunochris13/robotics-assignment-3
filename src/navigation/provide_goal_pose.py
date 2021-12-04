@@ -34,8 +34,6 @@ def pub_goal_pose(x, y, theta):
     checkpoint.pose.position.y = y
     checkpoint.pose.position.z = 0.0
 
-    print("x=", x, "y=",y)
-
     checkpoint.pose.orientation.x = 0.0
     checkpoint.pose.orientation.y = 0.0
     checkpoint.pose.orientation.w = 1.0

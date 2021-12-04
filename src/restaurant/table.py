@@ -16,7 +16,7 @@ class Table():
             description += f"{self.id} "
         
         if show_pose:
-            description += f"({self.pos.position.x}, {self.pos.position.y}) "
+            description += f"({self.pos.pose.position.x}, {self.pos.pose.position.y}) "
         
         if show_max_people:
             description += f"[MAX: {self.max_people}]"
