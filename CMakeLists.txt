@@ -53,6 +53,7 @@ catkin_python_setup()
 add_message_files(
    FILES
    Order.msg
+   Timer.msg
 )
 
 ## Generate services in the 'srv' folder
