@@ -5,14 +5,20 @@ import math
 import sys
 import signal
 from time import time
-from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
-from geometry_msgs.msg import Quaternion
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Quaternion, Twist
+from actionlib_msgs.msg import GoalID
+from move_base_msgs.msg import MoveBaseAction
+from actionlib import SimpleActionClient
 from util import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
 MAX_TIME = 60.0  # Seconds
 
+LINEAR_VEL = 0.5
+ANGULAR_VEL = 2.0
+VEL_PUB_DURATION_LINEAR = 0.5 # Seconds
+VEL_PUB_DURATION_ANGULAR = 2.0 # Seconds
 
 def signal_handler(signal, frame):
     print("\nInterrupted")
@@ -20,6 +26,72 @@ def signal_handler(signal, frame):
 
 
 signal.signal(signal.SIGINT, signal_handler)
+
+def cancel_path():
+    client = SimpleActionClient('move_base', MoveBaseAction)
+    client.wait_for_server()
+    client.cancel_all_goals()
+    rospy.loginfo("Cancelled goal_pose")
+
+def move_lin(lin):
+    pub_velocity = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    twist = Twist()
+
+    twist.linear.x = lin
+
+    # Connect with the publisher
+    while pub_velocity.get_num_connections() < 1:
+        pass
+
+    init_time = time()
+    duration = 0
+    # Publish to the /cmd_vel topic
+    while duration < VEL_PUB_DURATION_LINEAR:
+        pub_velocity.publish(twist)
+        duration = time() - init_time
+    rospy.loginfo("Moved Linearly")
+
+def move_ang(ang):
+    pub_velocity = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    twist = Twist()
+
+    twist.angular.z = ang
+
+    # Connect with the publisher
+    while pub_velocity.get_num_connections() < 1:
+        pass
+
+    init_time = time()
+    duration = 0
+    # Publish to the /cmd_vel topic
+    while duration < VEL_PUB_DURATION_ANGULAR:
+        pub_velocity.publish(twist)
+        duration = time() - init_time
+    rospy.loginfo("Turned")
+
+def move_forward():
+    move_lin(LINEAR_VEL)
+
+def move_backward():
+    move_lin(-LINEAR_VEL)
+
+def turn_left():
+    move_ang(ANGULAR_VEL)
+
+def turn_right():
+    move_ang(-ANGULAR_VEL)
+
+def recovery(x,y,theta):
+    rospy.loginfo("Revobery Started")
+    cancel_path()
+
+    move_forward()
+    turn_right()
+    move_forward()
+    turn_left()
+
+    pub_goal_pose(x,y,theta)
+    rospy.loginfo("Revobery Ended")
 
 
 def pub_goal_pose(x, y, theta):
@@ -76,6 +148,7 @@ def pub_goal_pose(x, y, theta):
 
     if time_passed > MAX_TIME:
         rospy.logwarn("Time Ran Out")
+        recovery(x, y, theta)
         return False
     else:
         rospy.sleep(2)
@@ -92,6 +165,7 @@ def _robot_pose_callback(pose):
 
 if __name__ == '__main__':
     try:
-        pub_goal_pose(0.0, 0.0, 0.0)
+        pub_goal_pose(0.0,  0.0, 0.0)
+        #pub_goal_pose(0.0, -6.0, 0.0)
     except rospy.ROSInterruptException:
         pass
