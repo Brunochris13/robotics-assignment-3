@@ -17,7 +17,7 @@
  <!-- Robot node -->
 <node pkg="waiter_robot" name="restaurant_robot" type="restaurant_robot.py"/>
  <!-- Restaurant node -->
-<!-- <node pkg="waiter_robot" name="restaurant" type="restaurant_robot.py" output="screen"/> -->
+<!-- <node pkg="waiter_robot" name="restaurant" type="restaurant_node.py" output="screen"/> -->
 
   <!-- Provide Initial Pose Estimate -->
   <node pkg="waiter_robot" name="provide_initial_pose_estimate" type="provide_initial_pose_estimate.py"/>

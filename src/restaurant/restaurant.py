@@ -37,9 +37,6 @@ class Restaurant():
             for t in ITEMS["tables"]
         ]
         self.order_history = []
-        rospy.init_node('restaurant')
-        pub = rospy.Publisher('timer', Timer, queue_size=10)
-        rospy.Subscriber("timer", Timer, monitor.callback)
 
 
     def get_menu(self, n18=False):

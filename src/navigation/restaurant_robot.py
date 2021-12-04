@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from geometry_msgs import msg
 import rospy
+import random
 # import nav_msgs.msg Odometry
-from msg import Order
+from msg import Timer
 
 import rospy
 import math
@@ -47,8 +48,12 @@ def pub_goal_pose(x, y, theta):
 
     pub.publish(checkpoint)
 
+    test_pub()
+
     rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped,
                      _robot_pose_callback, queue_size=10)
+
+    rospy.Subscriber("/timer", Timer, test_callback, queue_size=10)
 
     global robot_x, robot_y, robot_orientation
     robot_x = float('inf')
@@ -76,7 +81,7 @@ def pub_goal_pose(x, y, theta):
         # print()
         time_passed = time() - init_time
         rate.sleep()
-
+    
     # if time_passed > MAX_TIME:
     #     rospy.logwarn("Time Ran Out")
     #     return False
@@ -92,26 +97,19 @@ def _robot_pose_callback(pose):
     robot_y = pose.pose.pose.position.y
     robot_orientation = pose.pose.pose.orientation
 
+def test_callback(msg):
+    rospy.loginfo("I got a message")
+    rospy.loginfo('tableID: {}, maxTime: {}'.format(msg.tableID, msg.time, msg.done))
 
 
+def test_pub():
+    time_pub = rospy.Publisher('/timer', Timer, queue_size=10)
+    t = Timer()
+    t.tableID = random.randint(0,10)
+    t.time = random.randint(0,5)
+    t.done = False
+    time_pub.publish(t)
 
-tables = []
-# tables.append(<table id>, <x>, <y>)
-
-class TableMonitor(object):
-    def __init__(self, pub, tables):
-        self._pub = pub
-        self._tables = tables
-    
-    def callback(self, msg):
-        x = msg.pose.pose.position.x
-        y = msg.pose.pose.position.y
-        rospy.loginfo('x: {}, y: {}'.format(x, y))
-        
-        # you don't need to create class object everytime, if you want you can just publish a single type
-        order = Order()
-        order.tableID = random.random(x+y)
-        self._pub.publish(order)
 
 def main():
     
