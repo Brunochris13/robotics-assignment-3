@@ -1,5 +1,13 @@
+import os
 import rospy
-from msg import Timer
+import sys
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
+
+from waiter_robot.msg import Timer
+
 
 class State():
         def __init__(self, tableID, max):
@@ -25,21 +33,24 @@ def callback(self, msg):
         state = State(tableID, max)
         states.append(state)
 
-def main():
-
-
-        for i in range(len(states)):
-                state = states[i]
+def main(states):
+        rospy.loginfo("??")
+        temp = -1
+        for state in states:
                 state.next()
                 if state.isDone():
+                        rospy.loginfo("done??")
                         state.done = True
                         t = Timer()
                         t.tableID = state.tableID
                         t.time = state.time
                         t.done = state.done
                         pub.publish(t)
-
-        states = [state for state in states if state.done is False]
+                        rospy.loginfo(len(states))
+                        states.pop(state)
+                        rospy.loginfo(len(states))
+        
+        # states = [state for state in states if state.done is False]
 
 
 
@@ -50,8 +61,8 @@ if __name__== '__main__':
         rospy.init_node('restaurant')
         rate_interval = rospy.Rate(1)
         pub = rospy.Publisher('/timer', Timer, queue_size=10)
-        sub = rospy.Subscriber("/timer", Timer, callback)
+        rospy.Subscriber("/timer", Timer, callback)
 
         while not rospy.is_shutdown():
-                main()
+                main(states)
                 rate_interval.sleep()

@@ -3,7 +3,7 @@ from geometry_msgs import msg
 import rospy
 import random
 # import nav_msgs.msg Odometry
-from msg import Timer
+from waiter_robot.msg import Timer
 
 import rospy
 import math
@@ -99,14 +99,14 @@ def _robot_pose_callback(pose):
 
 def test_callback(msg):
     rospy.loginfo("I got a message")
-    rospy.loginfo('tableID: {}, maxTime: {}'.format(msg.tableID, msg.time, msg.done))
+    rospy.loginfo('tableID: {}, maxTime: {}, done: {}'.format(msg.tableID, msg.time, msg.done))
 
 
 def test_pub():
     time_pub = rospy.Publisher('/timer', Timer, queue_size=10)
     t = Timer()
-    t.tableID = random.randint(0,10)
-    t.time = random.randint(0,5)
+    t.tableID = random.randint(1,10)
+    t.time = random.randint(1,5)
     t.done = False
     time_pub.publish(t)
 
