@@ -35,6 +35,7 @@ class Restaurant():
             Table(id=t["id"], pos=Pose(position=Point(**t["pose"]["position"])), max_people=t["num_people"])
             for t in ITEMS["tables"]
         ]
+        self.orders = []
         self.order_history = []
 
 
@@ -81,7 +82,7 @@ class Restaurant():
         Args:
             table_id (int):
         """
-        pass
+        self.tables[table_id].occupied = True
 
 
     def get_available_tables(self, num_people=1):
@@ -90,7 +91,7 @@ class Restaurant():
         Returns:
             (list(Table)):
         """
-        pass
+        return [table for table in self.tables if table.occupied is False]
 
     # implement
     def get_food_ready(self):
@@ -99,7 +100,7 @@ class Restaurant():
         Returns:
             (list(int)):
         """
-        pass
+        return [order.id for order in self.orders if order.status is 3]
 
     # implement
     def get_bill_ready(self):
@@ -108,7 +109,7 @@ class Restaurant():
         Returns:
             (list(int)):
         """
-        pass
+        return [order.id for order in self.orders if order.status is 4]
     
     # implement
     def new_customer_exists(self):

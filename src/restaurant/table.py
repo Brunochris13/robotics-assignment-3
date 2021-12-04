@@ -7,6 +7,7 @@ class Table():
         self.pos = pos
         self.max_people = max_people
         self.age_group = self.assign_age_group(entrance_pos, centre_pos)
+        self.occupied = False
     
 
     def describe(self, show_id=True, show_pose=True, show_max_people=False):
