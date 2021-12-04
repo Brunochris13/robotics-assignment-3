@@ -167,8 +167,12 @@ catkin_install_python(PROGRAMS
   src/navigation/provide_goal_pose.py
   src/navigation/provide_initial_pose_estimate.py
   src/navigation/amcl.py
+<<<<<<< HEAD
   src/restaurant_node_server.py
   src/navigation/restaurant_robot_client.py
+=======
+  src/main.py
+>>>>>>> main
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

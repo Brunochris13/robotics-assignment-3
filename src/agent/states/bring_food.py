@@ -11,12 +11,12 @@ class BringFood(State):
     def __init__(self):
         self.substate = self._SubState.GOTO_KITCHEN
 
-    def do(self, robot):
-        if self.substate is 1:
-            self.substate = self.goto_pos(robot, robot.restaurant.kitchen)
-        elif self.substate is 2:
-            self.substate = self.goto_pos(robot, robot.active_order.table.pos)
-        elif self.substate is 3:
+    def update(self, robot):
+        if self.substate == 1:
+            self.substate = self.goto_pose(robot, robot.restaurant.kitchen)
+        elif self.substate == 2:
+            self.substate = self.goto_pose(robot, robot.active_order.table.pos)
+        elif self.substate == 3:
             self.substate = self.serve_people(robot)
 
 
