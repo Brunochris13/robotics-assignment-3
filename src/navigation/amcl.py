@@ -31,9 +31,9 @@ class Amcl():
     INIT_HEADING = 0 	# Initial orientation of robot (radians)
 
     # Set motion model parameters
-    ODOM_ROTATION_NOISE = .15
-    ODOM_TRANSLATION_NOISE = .15
-    ODOM_DRIFT_NOISE = .15
+    ODOM_ROTATION_NOISE = .1
+    ODOM_TRANSLATION_NOISE = .1
+    ODOM_DRIFT_NOISE = .1
 
     NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
 
@@ -300,8 +300,8 @@ class Amcl():
                       f"Threshold: {self.KIDNAP_THRESHOLD}")
 
         # If weights are low, dissolve particles
-        if len(poses.poses) > SPREAD_THRESHOLD and \
-           -1 not in self.ws_last_eval and self.clustered and \
+        #if len(poses.poses) > SPREAD_THRESHOLD and \
+        if -1 not in self.ws_last_eval and self.clustered and \
            np.mean(self.ws_last_eval) <= self.KIDNAP_THRESHOLD:
             # Reinitialize the trailing of weight eval values
             self.ws_last_eval = list(map(lambda _: -1, self.ws_last_eval))
@@ -681,6 +681,22 @@ class Amcl():
         x_hat = np.random.normal(pose.position.x, self.ODOM_TRANSLATION_NOISE)
         y_hat = np.random.normal(pose.position.y, self.ODOM_DRIFT_NOISE)
         theta_hat = np.random.normal(scale=self.ODOM_ROTATION_NOISE)
+
+        # Map parameters
+        width = self.occupancy_map.info.width
+        height = self.occupancy_map.info.height
+        origin = self.occupancy_map.info.origin.position
+        resolution = self.occupancy_map.info.resolution
+
+        # Check if pose is in the map
+        map_x = int((x_hat - origin.x) / resolution)
+        map_y = int((y_hat - origin.y) / resolution)
+        while self.occupancy_map.data[map_y * width + map_x] == -1:
+            map_y = np.random.randint(height)
+            map_x = np.random.randint(width)
+
+        x_hat = map_x * resolution + origin.x
+        y_hat = map_y * resolution + origin.y
 
         # Assign noisy pose estimates
         pose_hat.position.x = x_hat
