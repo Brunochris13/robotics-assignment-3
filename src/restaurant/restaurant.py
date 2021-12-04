@@ -1,5 +1,7 @@
 from geometry_msgs.msg import Pose, Point
 from .table import Table
+import rospy
+from msg import Timer
 
 
 ITEMS = {
@@ -35,6 +37,7 @@ class Restaurant():
             for t in ITEMS["tables"]
         ]
         self.order_history = []
+
 
     def get_menu(self, n18=False):
         """Gets the restaurant menu with food names and prices.
