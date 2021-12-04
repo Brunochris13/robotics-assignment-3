@@ -13,27 +13,46 @@ from util import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
-MAX_TIME = 60.0  # Seconds
+MAX_TIME = 2.0 #60.0  # Seconds
 
 LINEAR_VEL = 0.5
 ANGULAR_VEL = 2.0
-VEL_PUB_DURATION_LINEAR = 0.5 # Seconds
-VEL_PUB_DURATION_ANGULAR = 2.0 # Seconds
+VEL_PUB_DURATION_LINEAR = 0.5  # Seconds
+VEL_PUB_DURATION_ANGULAR = 2.0  # Seconds
+
+global recovery_counter
+recovery_counter = 0
 
 def signal_handler(signal, frame):
+    """ Helps to interrupt pub_goal_pose using CTRL+C
+
+    Args:
+        num_poses (int): the amount of poses to generate. If not
+            provided, `self.NUMBER_PREDICTED_READINGS` is used.
+    Return:
+        (geometry_msgs.msg.PoseArray): random particle poses
+    """
     print("\nInterrupted")
     sys.exit(1)
 
 
 signal.signal(signal.SIGINT, signal_handler)
 
+
 def cancel_path():
+    """ Cancels the current path
+    """
     client = SimpleActionClient('move_base', MoveBaseAction)
     client.wait_for_server()
     client.cancel_all_goals()
     rospy.loginfo("Cancelled goal_pose")
 
-def move_lin(lin):
+
+def _move_lin(lin):
+    """ Moves linearly
+    Args:
+        lin (float): the linear velocity
+    """
     pub_velocity = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     twist = Twist()
 
@@ -51,7 +70,12 @@ def move_lin(lin):
         duration = time() - init_time
     rospy.loginfo("Moved Linearly")
 
-def move_ang(ang):
+
+def _move_ang(ang):
+    """ Moves angularly
+    Args:
+        ang (float): the angular velocity
+    """
     pub_velocity = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     twist = Twist()
 
@@ -69,20 +93,32 @@ def move_ang(ang):
         duration = time() - init_time
     rospy.loginfo("Turned")
 
+
 def move_forward():
-    move_lin(LINEAR_VEL)
+    _move_lin(LINEAR_VEL)
+
 
 def move_backward():
-    move_lin(-LINEAR_VEL)
+    _move_lin(-LINEAR_VEL)
+
 
 def turn_left():
-    move_ang(ANGULAR_VEL)
+    _move_ang(ANGULAR_VEL)
+
 
 def turn_right():
-    move_ang(-ANGULAR_VEL)
+    _move_ang(-ANGULAR_VEL)
 
-def recovery(x,y,theta):
-    rospy.loginfo("Revobery Started")
+
+def recovery(x, y, theta):
+    """ Cancels the current path, then moves around to get unstuck
+    and then calls pub_goal_pose again to the same path
+    Args:
+        x (float): goal pose x coordinate
+        y (float): goal pose y coordinate
+        theta (float): goal pose orientation in radians
+    """
+    rospy.loginfo("Recovery Started")
     cancel_path()
 
     move_forward()
@@ -90,11 +126,22 @@ def recovery(x,y,theta):
     move_forward()
     turn_left()
 
-    pub_goal_pose(x,y,theta)
-    rospy.loginfo("Revobery Ended")
+    rospy.loginfo("Recovery Ended")
+    rospy.loginfo("Trying again")
+    pub_goal_pose(x, y, theta)
 
 
 def pub_goal_pose(x, y, theta):
+    """ Publishes to the /move_base_simple/goal topic the coordinates of
+        a new goal pose
+    Args:
+        x (float): goal pose x coordinate
+        y (float): goal pose y coordinate
+        theta (float): goal pose orientation in radians
+    Return:
+        (bool): True if goal is reached, False if MAX_TIME seconds have passed and 
+            the robot did not get to the goal pose
+    """
     rospy.init_node('goal_pos')
     pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=10)
     rospy.sleep(1)
@@ -139,16 +186,16 @@ def pub_goal_pose(x, y, theta):
          abs(robot_orientation.w - checkpoint.pose.orientation.w) > ORIENTATION_TOLERANCE or
          abs(robot_orientation.z - checkpoint.pose.orientation.z) > ORIENTATION_TOLERANCE):
 
-        # print("diff: ", abs(robot_orientation.w - checkpoint.pose.orientation.w))
-        # print("robot_orientation.w: ", robot_orientation.w)
-        # print("checkpoint.pose.orientation.w: ", checkpoint.pose.orientation.w)
-        # print()
         time_passed = time() - init_time
         rate.sleep()
 
     if time_passed > MAX_TIME:
-        rospy.logwarn("Time Ran Out")
-        recovery(x, y, theta)
+        rospy.logwarn("Time Ran Out! Cancelling Path")
+        global recovery_counter
+        recovery_counter += 1
+        if recovery_counter < 3:
+            recovery(x, y, theta)
+            cancel_path()
         return False
     else:
         rospy.sleep(2)
@@ -157,6 +204,10 @@ def pub_goal_pose(x, y, theta):
 
 
 def _robot_pose_callback(pose):
+    """ Reads the x, y and orientation of the robot from the /amcl_pose topic
+    Args:
+        pose (PoseWithCovarianceStamped): estimated pose of the robot
+    """
     global robot_x, robot_y, robot_orientation
     robot_x = pose.pose.pose.position.x
     robot_y = pose.pose.pose.position.y
