@@ -170,6 +170,7 @@ catkin_install_python(PROGRAMS
   src/navigation/amcl.py
   src/navigation/restaurant_robot.py
   src/restaurant_node.py
+  src/main.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

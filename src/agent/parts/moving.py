@@ -34,7 +34,7 @@ class Moving():
         self.amcl_subscriber = rospy.Subscriber(
             "/amcl_pose", PoseWithCovarianceStamped, self.robot_pose_callback, queue_size=10)
 
-        time.sleep(5)
+        rospy.sleep(5)
 
 
     def init_pose(self):
@@ -143,7 +143,7 @@ class Moving():
         def clear_costmaps():
             rospy.loginfo("Clearing Costmaps")
             os.system('rosservice call /move_base/clear_costmaps \"{}\"')
-            time.sleep(0.5)
+            rospy.sleep(0.5)
             # self.goal_publisher.publish(pose)
 
         if self.recovery_counter > 2:
@@ -153,7 +153,7 @@ class Moving():
         print(self.mname + "Departure - publishing to NavStack")
         clear_costmaps()
         self.goal_publisher.publish(pose)
-        time.sleep(2)
+        rospy.sleep(2)
         order_status = self.get_status()
 
         counter = 0
@@ -177,7 +177,7 @@ class Moving():
                 counter = 0
                 clear_costmaps()
 
-            time.sleep(0.2)
+            rospy.sleep(0.2)
             order_status = self.get_status()
 
             time_passed = time() - init_time
