@@ -14,7 +14,7 @@ from sensor_msgs.msg import LaserScan
 from copy import deepcopy
 from threading import Lock
 from navigation import sensor_model 
-from ..utils.geom import getHeading, rotateQuaternion
+from utils.geom import getHeading, rotateQuaternion
 from navigation.histogram import Histogram
 
 PI_OVER_TWO = math.pi/2
