@@ -132,19 +132,19 @@ class BeginOrder(State):
 
     def update(self, robot):
 
-        if self.substate == 1:
+        if self.substate is self._SubState.GOTO_ENTRANCE:
             # If robot has not yet reached the entrance
             self.substate = self.goto_pose(robot, robot.restaurant.entrance)
-        elif self.substate == 2:
+        elif self.substate is self._SubState.MEET_PEOPLE:
             # If robot has not yet welcomed the people
             self.substate = self.greet_people(robot)
-        elif self.substate == 3:
+        elif self.substate is self._SubState.FIND_TABLE:
             # If robot has not yet found out the table
             self.substate = self.find_table(robot)
-        elif self.substate == 4:
+        elif self.substate is self._SubState.GOTO_TABLE:
             # If robot has not yet guided the people
             self.substate = self.goto_pose(robot, robot.active_order.table.pos)
-        elif self.substate == 5:
+        elif self.substate is self._SubState.TAKE_ORDER:
             # If robot has not yet accepted the order
             self.substate = self.take_order(robot)
     

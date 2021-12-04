@@ -4,17 +4,19 @@ from utils.geom import make_pose
 
 
 ITEMS = {
-    "entrance": {"pose": {"position": {"x": 0, "y": -8, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
+    "entrance": {"pose": {"position": {"x": 0, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "kitchen": {"pose": {"position": {"x": 1.5, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "centre": {"pose": {"position": {"x": 0, "y": 0, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "tables": [
-        {"id": 0, "pose": {"position": {"x": -3.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
-        {"id": 1, "pose": {"position": {"x": -4, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
-        {"id": 2, "pose": {"position": {"x": -3.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
-        {"id": 3, "pose": {"position": {"x": -4, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
-        {"id": 4, "pose": {"position": {"x": 1.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
-        {"id": 5, "pose": {"position": {"x": 1, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
-        {"id": 6, "pose": {"position": {"x": 1.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        {"id": 0, "pose": {"position": {"x": -1, "y": -4, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        {"id": 1, "pose": {"position": {"x": -1.5, "y": -6, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "rectangle"},
+        #{"id": 0, "pose": {"position": {"x": -3.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        #{"id": 1, "pose": {"position": {"x": -4, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
+        #{"id": 2, "pose": {"position": {"x": -3.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        #{"id": 3, "pose": {"position": {"x": -4, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
+        #{"id": 4, "pose": {"position": {"x": 1.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        #{"id": 5, "pose": {"position": {"x": 1, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
+        #{"id": 6, "pose": {"position": {"x": 1.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
     ]
 }
 
@@ -28,13 +30,13 @@ class Restaurant():
     """
     
     def __init__(self):
-        self.entrance = Pose(position=Point(**ITEMS["entrance"]["pose"]["position"])) # read from file/db (position)
-        self.kitchen = Pose(position=Point(**ITEMS["kitchen"]["pose"]["position"])) # read from file/db (position)
-        self.centre = Pose(position=Point(**ITEMS["centre"]["pose"]["position"])) # read from file/db (position)
+        self.entrance = make_pose(ITEMS["entrance"]["pose"]["position"]["x"], ITEMS["entrance"]["pose"]["position"]["y"])
+        self.kitchen = make_pose(ITEMS["kitchen"]["pose"]["position"]["x"], ITEMS["kitchen"]["pose"]["position"]["y"])
+        self.centre = Pose(position=Point(**ITEMS["centre"]["pose"]["position"]))
         self.tables = [
             # Pose(position=Point(**t["pose"]["position"]))
-            #Table(id=t["id"], pos=make_pose(t["pose"]["position"]["x"] + (1 if t["type"] == "square" else 1.5), t["pose"]["position"]["y"] + 1), max_people=t["num_people"])
-            #for t in ITEMS["tables"]
+            Table(id=t["id"], pos=make_pose(t["pose"]["position"]["x"] + (1 if t["type"] == "square" else 1.5), t["pose"]["position"]["y"] + 1), max_people=t["num_people"])
+            for t in ITEMS["tables"]
         ]
         self.order_history = []
 
@@ -90,7 +92,7 @@ class Restaurant():
         Returns:
             (list(Table)):
         """
-        pass
+        return self.tables
 
 
     def get_food_ready(self):

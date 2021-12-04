@@ -32,7 +32,7 @@ class Communication():
 
 
     def ask(self, message, valid_answers=[], binary=False, max_prompts=(3, 3)):
-        
+
         if isinstance(max_prompts, int):
             # Convert to tuple if single int is given
             max_prompts = (max_prompts, max_prompts)
@@ -50,7 +50,7 @@ class Communication():
             num_prompts += 1
 
             # Ask the question and wait until some sort of an answer is acquired
-            voice_data = self.say_listen(self, message, binary, max_prompts[0])
+            voice_data = self.say_listen(message, binary, max_prompts[0])
 
             if voice_data not in valid_answers and num_prompts < max_prompts[1]:
                 # Define all valid options for the provided question
@@ -144,9 +144,13 @@ class Communication():
         Returns:
             (tuple): A tuple consisting of a logic action and voice data
         """
+        print(sr.Microphone.list_microphone_names())
         # Initialize the recognizer
-        recognizer = sr.Recognizer()
+        #recognizer = sr.Recognizer()
+        voice_data = 4
+        
 
+        """
         with sr.Microphone() as source:
             # Record voice data from microphone
             audio = recognizer.listen(source)
@@ -160,12 +164,13 @@ class Communication():
             except sr.RequestError:
                 # Speech service doesn't work
                 return Action.BASE.REJECT, ""
-            
+        
+        """    
         return Action.BASE.ACCEPT, voice_data
+        
 
 
 if __name__ == "__main__":
     communication = Communication()
-    print("hi")
-    communication.say("Hi there. This is a very long paragraph")
-    print("Prints only after speaking")
+    _, data = communication.record_from_microphone()
+    print(data)

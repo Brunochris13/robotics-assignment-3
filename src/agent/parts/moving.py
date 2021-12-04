@@ -61,7 +61,7 @@ class Moving():
 
             d, r, b = is_near(self.current_pose, pose, radius=1.5)
 
-            print(d, r)
+            # print(d, r)
 
             if order_status == GoalStatus.ABORTED:
                 print(self.mname + "Unreachable location. Retrying.")
@@ -78,9 +78,9 @@ class Moving():
             time.sleep(0.2)
             order_status = self.get_status()
 
-            if b:
+            #if b:
                 # If near target position, publish self pose so it's automatically successful
-                self.goal_publisher.publish(self.current_pose)
+            #    self.goal_publisher.publish(self.current_pose)
 
         print(self.mname + "Arrival")
     

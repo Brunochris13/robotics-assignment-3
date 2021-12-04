@@ -24,11 +24,18 @@ class Robot():
         
         self.orders = []
         self.active_order = None
-        self.state = Wander()
+        
         self.moving = Moving()
         self.vision = Vision()
         self.communication = Communication()
         self.restaurant = Restaurant()
+
+        self.state_wander = Wander()
+        self.state_begin_order = BeginOrder()
+        self.state_bring_food = BringFood()
+        self.state_end_order = EndOrder()
+
+        self.state = Wander()
 
         self.moving.init_pose()
 
@@ -43,6 +50,7 @@ class Robot():
             self.state = Wander()
         elif action is Action.FLOW.BEGIN_ORDER:
             self.state = BeginOrder()
+            self.state.update(self)
         elif action is Action.FLOW.BRING_FOOD:
             self.state = BringFood()
         elif action is Action.FLOW.END_ORDER:

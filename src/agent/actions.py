@@ -13,6 +13,6 @@ class _FlowAction(Enum):
     END_ORDER = auto()
     WANDER = auto()
 
-class Action(Enum):
-    BASE = _BaseAction(1)
-    FLOW = _FlowAction(1)
+class Action():
+    BASE = _BaseAction
+    FLOW = _FlowAction
