@@ -146,11 +146,8 @@ class Communication():
         """
         print(sr.Microphone.list_microphone_names())
         # Initialize the recognizer
-        #recognizer = sr.Recognizer()
-        voice_data = 4
+        recognizer = sr.Recognizer()
         
-
-        """
         with sr.Microphone() as source:
             # Record voice data from microphone
             audio = recognizer.listen(source)
@@ -164,8 +161,7 @@ class Communication():
             except sr.RequestError:
                 # Speech service doesn't work
                 return Action.BASE.REJECT, ""
-        
-        """    
+
         return Action.BASE.ACCEPT, voice_data
         
 
