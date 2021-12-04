@@ -37,10 +37,10 @@ class BeginOrder(State):
             sentence2 = "How many times do I have to ask the same question?"
             sentence3 = "Begone. I will not serve you today."
 
-            # Say the sentences and cancel the order, switch to state Wander
+            # Say the sentences and cancel the order, switch to state WANDER
             robot.communication.say(f"{sentence1} {sentence2} {sentence3}")
+            robot.change_state(Action.FLOW.WANDER)
             robot.end_order(success=False)
-            robot.state = Wander()
 
         return action is Action.BASE.REPEAT
     
@@ -130,21 +130,21 @@ class BeginOrder(State):
                 return Action.BASE.ACCEPT
 
 
-    def do(self, robot):
+    def update(self, robot):
 
-        if self.substate is 1:
+        if self.substate == 1:
             # If robot has not yet reached the entrance
-            self.substate = self.goto_pos(robot, robot.restaurant.entrance)
-        elif self.substate is 2:
+            self.substate = self.goto_pose(robot, robot.restaurant.entrance)
+        elif self.substate == 2:
             # If robot has not yet welcomed the people
             self.substate = self.greet_people(robot)
-        elif self.substate is 3:
+        elif self.substate == 3:
             # If robot has not yet found out the table
             self.substate = self.find_table(robot)
-        elif self.substate is 4:
+        elif self.substate == 4:
             # If robot has not yet guided the people
-            self.substate = self.goto_pos(robot, robot.active_order.table.pos)
-        elif self.substate is 5:
+            self.substate = self.goto_pose(robot, robot.active_order.table.pos)
+        elif self.substate == 5:
             # If robot has not yet accepted the order
             self.substate = self.take_order(robot)
     

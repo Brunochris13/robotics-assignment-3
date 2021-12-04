@@ -1,21 +1,26 @@
+import math
 from geometry_msgs.msg import Pose, Point
 from .table import Table
-import rospy
-from msg import Timer
+from utils.geom import make_pose
 
+# For faster calculations
+PI = math.pi
+PI_2 = PI/2
 
 ITEMS = {
     "entrance": {"pose": {"position": {"x": 0, "y": -8, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "kitchen": {"pose": {"position": {"x": 1.5, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "centre": {"pose": {"position": {"x": 0, "y": 0, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "tables": [
-        {"id": 0, "pose": {"position": {"x": -3.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
-        {"id": 1, "pose": {"position": {"x": -4, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
-        {"id": 2, "pose": {"position": {"x": -3.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
-        {"id": 3, "pose": {"position": {"x": -4, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
-        {"id": 4, "pose": {"position": {"x": 1.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
-        {"id": 5, "pose": {"position": {"x": 1, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
-        {"id": 6, "pose": {"position": {"x": 1.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        {"id": 0, "pose": {"position": {"x": -3.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square",
+        "robot_pose": {"position_0": {"x": -1, "y": -6, "orientation": PI}, "position_1": {"x": -2, "y": -7.5, "orientation": PI_2},
+                       "position_2": {"x": -4, "y": -6, "orientation": 0}, "position_3": {"x": -2, "y": -4.5, "orientation": -PI_2}}},
+        # {"id": 1, "pose": {"position": {"x": -4, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
+        # {"id": 2, "pose": {"position": {"x": -3.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        # {"id": 3, "pose": {"position": {"x": -4, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
+        # {"id": 4, "pose": {"position": {"x": 1.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        # {"id": 5, "pose": {"position": {"x": 1, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
+        # {"id": 6, "pose": {"position": {"x": 1.5, "y": 1, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
     ]
 }
 
@@ -33,7 +38,8 @@ class Restaurant():
         self.kitchen = Pose(position=Point(**ITEMS["kitchen"]["pose"]["position"])) # read from file/db (position)
         self.centre = Pose(position=Point(**ITEMS["centre"]["pose"]["position"])) # read from file/db (position)
         self.tables = [
-            Table(id=t["id"], pos=Pose(position=Point(**t["pose"]["position"])), max_people=t["num_people"])
+            # Pose(position=Point(**t["pose"]["position"]))
+            Table(id=t["id"], pos=make_pose(t["pose"]["position"]["x"] + (1 if t["type"] == "square" else 1.5), t["pose"]["position"]["y"] + 1), max_people=t["num_people"])
             for t in ITEMS["tables"]
         ]
         self.order_history = []

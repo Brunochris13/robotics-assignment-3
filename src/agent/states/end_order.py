@@ -10,9 +10,9 @@ class EndOrder(State):
     def __init__(self):
         self.substate = self._SubState.GOTO_TABLE
     
-    def do(self, robot):
+    def update(self, robot):
         if self.substate == 1:
-            self.substate = self.goto_pos(robot, robot.active_order.table.pos)
+            self.substate = self.goto_pose(robot, robot.active_order.table.pos)
         elif self.substate == 2:
             self.substate = self.ask_if_finished(robot)
         elif self.substate == 3:

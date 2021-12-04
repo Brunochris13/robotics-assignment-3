@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
-from utils.geom import is_near, is_facing
+
+from utils.geom import is_facing, is_near
+
 
 class State(ABC):
     def __init__(self):
         if type(self) is State:
             raise NotImplementedError("Cannot do direct instantiation!")
     
+    
     @abstractmethod
-    def do(self, robot):
+    def update(self, robot):
         pass
     
 
@@ -69,7 +72,7 @@ class State(ABC):
         return members[index - 1]
 
     
-    def goto_pos(self, robot, pos, radius=20):
+    def goto_pose(self, robot, pose, radius=20):
         """Goes to the assigned position.
 
         Args:
@@ -91,6 +94,6 @@ class State(ABC):
             robot.moving.turn_to(pos)
         """
 
-        robot.moving.move_to(pos)
+        robot.moving.goto_pose(pose)
         
         return self.next(self.substate)# self.next(self.substate, all(at_pos))

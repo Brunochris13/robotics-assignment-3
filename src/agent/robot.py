@@ -1,3 +1,4 @@
+import rospy
 from enum import Enum, auto
 
 from restaurant.order import OrderStatus
@@ -19,6 +20,8 @@ class Status(Enum):
 
 class Robot():
     def __init__(self):
+        rospy.init_node("waiter_robot")
+        
         self.orders = []
         self.active_order = None
         self.state = Wander()
@@ -27,9 +30,11 @@ class Robot():
         self.communication = Communication()
         self.restaurant = Restaurant()
 
+        self.moving.init_pose()
+
 
     def update(self):
-        self.state.do(self)
+        self.state.update(self)
         self.restaurant.update(self.orders)
 
     
