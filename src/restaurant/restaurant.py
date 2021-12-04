@@ -73,7 +73,7 @@ class Restaurant():
         Returns:
             (list(Table)):
         """
-        pass
+        return [table for table in self.tables if table.age_group is age_group]
 
     # implement
     def set_occupied_table(self, table_id):
