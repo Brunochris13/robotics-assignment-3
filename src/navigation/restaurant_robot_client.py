@@ -116,9 +116,9 @@ def test_client(x, y):
        rospy.wait_for_service('timer')
        try:
             wait = rospy.ServiceProxy('timer', Timer)
-            resp1 = wait(x, y)
+            response = wait(x, y)
             rospy.loginfo("sent")
-            return resp1
+            return response
        except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
 

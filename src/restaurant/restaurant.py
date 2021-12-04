@@ -1,6 +1,7 @@
 from geometry_msgs.msg import Pose, Point
 from .table import Table
 import rospy
+from menu import menu
 
 
 ITEMS = {
@@ -38,7 +39,7 @@ class Restaurant():
         self.orders = []
         self.order_history = []
 
-
+    # dictionary format
     def get_menu(self, n18=False):
         """Gets the restaurant menu with food names and prices.
         
@@ -48,7 +49,7 @@ class Restaurant():
         Returns:
             (dict):
         """
-        pass
+        return menu
 
 
     def get_table_by_id(self, table_id):
@@ -111,7 +112,7 @@ class Restaurant():
         """
         return [order.id for order in self.orders if order.status is 4]
     
-    # implement
+    # implement, wander.py switch function
     def new_customer_exists(self):
         """Checks if there's any new customers at the entrance.
 
@@ -121,7 +122,7 @@ class Restaurant():
         pass
 
 
-    def update(self, orders):
+    def update(self):
         """Updates the state of the restaurant.
 
         For example, reads a .txt file to see if someone has finished eating.

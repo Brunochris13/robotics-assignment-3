@@ -19,7 +19,7 @@ class Status(Enum):
 
 class Robot():
     def __init__(self):
-        # self.orders = [] # moved to restaurant
+        self.orders = [] # moved to restaurant
         self.active_order = None
         self.state = Wander()
         self.moving = Moving()
@@ -30,8 +30,7 @@ class Robot():
 
     def update(self):
         self.state.do(self)
-        # need to change this
-        self.restaurant.update()
+        self.restaurant.update(self.orders) # need to change this
 
     
     def change_state(self, action):
@@ -62,7 +61,7 @@ class Robot():
             order.status = OrderStatus.CANCELED
         
         self.restaurant.order_history.append(order)
-        self.restaurant.orders.remove(order)
+        self.orders.remove(order)
 
 
     def get_order_by_id(self, order_id=None):
@@ -77,8 +76,8 @@ class Robot():
         if order_id is None:
             order_id = self.active_order.id
         
-        order_ids = [order.id for order in self.restaurant.orders]
-        return self.restaurant.orders[order_ids.index(order_id)]
+        order_ids = [order.id for order in self.orders]
+        return self.orders[order_ids.index(order_id)]
 
 
     """

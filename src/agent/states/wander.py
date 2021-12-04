@@ -28,7 +28,7 @@ class Wander(State):
     def switch(self, robot):
         """Switches state if either of them is triggered. 
         """
-        order_ids = [order.id for order in robot.orders]
+        order_ids = [order.id for order in robot.restaurant.orders]
 
         for order_id in robot.restaurant.get_food_ready():
             if order_id in order_ids:
