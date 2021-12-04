@@ -166,6 +166,7 @@ catkin_install_python(PROGRAMS
   src/navigation/provide_goal_pose.py
   src/navigation/provide_initial_pose_estimate.py
   src/navigation/amcl.py
+  src/main.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

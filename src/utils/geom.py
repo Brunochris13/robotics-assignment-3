@@ -2,31 +2,36 @@ import math
 import time
 from geometry_msgs.msg import Quaternion, PoseStamped, PoseWithCovarianceStamped
 
-def make_pose_cov(x, y):
-	pose =  PoseWithCovarianceStamped()
-	pose.pose.pose.position.x = x
-	pose.pose.pose.position.y = y
-	pose.pose.pose.position.z = 0
-	pose.pose.pose.orientation.x = 0
-	pose.pose.pose.orientation.y = 0
-	pose.pose.pose.orientation.z = 0
-	pose.pose.pose.orientation.w = 1
-	# pose.header.stamp.secs = time.time()
-	pose.header.frame_id = "map"
-	return pose
 
-def make_pose(x, y):
-	pose = PoseStamped()
-	pose.pose.position.x = x
-	pose.pose.position.y = y
-	pose.pose.position.z = 0
-	pose.pose.orientation.x = 0
-	pose.pose.orientation.y = 0
-	pose.pose.orientation.z = 0
-	pose.pose.orientation.w = 1
-	# pose.header.stamp.secs = time.time()
-	pose.header.frame_id = "map"
-	return pose
+def make_pose_cov(x, y):
+    pose = PoseWithCovarianceStamped()
+    pose.pose.pose.position.x = x
+    pose.pose.pose.position.y = y
+    pose.pose.pose.position.z = 0
+    pose.pose.pose.orientation.x = 0
+    pose.pose.pose.orientation.y = 0
+    pose.pose.pose.orientation.z = 0
+    pose.pose.pose.orientation.w = 1
+    # pose.header.stamp.secs = time.time()
+    pose.header.frame_id = "map"
+    return pose
+
+
+def make_pose(x, y, theta=0):
+    pose = PoseStamped()
+    pose.pose.position.x = x
+    pose.pose.position.y = y
+    pose.pose.position.z = 0
+    pose.pose.orientation.x = 0
+    pose.pose.orientation.y = 0
+    pose.pose.orientation.z = 0
+    pose.pose.orientation.w = 1
+    # pose.header.stamp.secs = time.time()
+    pose.header.frame_id = "map"
+
+    if theta != 0:
+        pose.pose.orientation = rotateQuaternion(pose.pose.orientation, theta)
+    return pose
 
 
 def is_near(source_pose, target_pose, radius=1):
@@ -41,6 +46,8 @@ def is_near(source_pose, target_pose, radius=1):
 def is_facing(source_pos, source_angle, target_pos):
     pass
 
+def euclidean_distance_poses(x1, y1, x2, y2):
+    return math.sqrt(math.pow(x1-x2, 2) + math.pow(y1-y2, 2))
 
 def rotateQuaternion(q_orig, yaw):
     """
