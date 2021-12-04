@@ -8,4 +8,16 @@ d = generate_distutils_setup(
    package_dir={'': 'src'}
 )
 
+f = generate_distutils_setup(
+   packages=['utils'],
+   package_dir={'': 'src'}
+)
+
+g = generate_distutils_setup(
+   packages=['msg'],
+   package_dir={'': ""}
+)
+
 setup(**d)
+setup(**f)
+setup(**g)
