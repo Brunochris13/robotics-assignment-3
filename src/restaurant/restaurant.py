@@ -1,7 +1,6 @@
 from geometry_msgs.msg import Pose, Point
 from .table import Table
 import rospy
-from msg import Timer
 
 
 ITEMS = {
@@ -75,7 +74,7 @@ class Restaurant():
         """
         pass
 
-
+    # implement
     def set_occupied_table(self, table_id):
         """Sets the table as occupied (e.g. in database)
 
@@ -93,7 +92,7 @@ class Restaurant():
         """
         pass
 
-
+    # implement
     def get_food_ready(self):
         """Gets the list of order IDs for which the food is ready.
 
@@ -102,7 +101,7 @@ class Restaurant():
         """
         pass
 
-
+    # implement
     def get_bill_ready(self):
         """Gets the list of order IDs for which the bill is ready.
 
@@ -111,7 +110,7 @@ class Restaurant():
         """
         pass
     
-    
+    # implement
     def new_customer_exists(self):
         """Checks if there's any new customers at the entrance.
 

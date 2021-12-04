@@ -20,12 +20,10 @@ class State():
                 self.time += 1
 
         def isDone(self):
-                if self.maxTime == self.time:
-                        return True
-                else:
-                        return False
+                return self.maxTime <= self.time
+                
 
-def callback(self, msg):
+def callback(msg):
         tableID = msg.tableID
         max = msg.time
         rospy.loginfo('tableID: {}, maxTime: {}'.format(tableID, max))
@@ -34,8 +32,6 @@ def callback(self, msg):
         states.append(state)
 
 def main(states):
-        rospy.loginfo("??")
-        temp = -1
         for state in states:
                 state.next()
                 if state.isDone():
@@ -46,13 +42,8 @@ def main(states):
                         t.time = state.time
                         t.done = state.done
                         pub.publish(t)
-                        rospy.loginfo(len(states))
-                        states.pop(state)
-                        rospy.loginfo(len(states))
         
-        # states = [state for state in states if state.done is False]
-
-
+        states = [state for state in states if state.done is False]
 
 
 
