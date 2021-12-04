@@ -1,5 +1,5 @@
 from geometry_msgs.msg import Pose, Point
-from .table import Table
+from table import Table
 import rospy
 from menu import menu
 
