@@ -1,8 +1,8 @@
 import math
 from geometry_msgs.msg import Pose, Point
-from table import Table
+from restaurant.table import Table
 import rospy
-from menu import menu
+from restaurant.menu import menu
 from .table import Table
 from utils.geom import make_pose
 

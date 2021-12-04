@@ -215,13 +215,8 @@ def _robot_pose_callback(pose):
 
 if __name__ == '__main__':
     try:
-<<<<<<< HEAD
         pub_goal_pose(0.0, 0.0, 0.0)
         pub_goal_pose(0.0, -7.0, 0.0)
         
-=======
-        pub_goal_pose(0.0,  0.0, 0.0)
-        #pub_goal_pose(0.0, -6.0, 0.0)
->>>>>>> main
     except rospy.ROSInterruptException:
         pass
