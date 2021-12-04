@@ -45,12 +45,13 @@ class Communication():
         num_prompts = 0
         action = None
         
-        while action != Action.BASE.ACCEPT or num_prompts < max_prompts[1]:
+        while action != Action.BASE.ACCEPT and num_prompts < max_prompts[1]:
             # Increase count
             num_prompts += 1
 
             # Ask the question and wait until some sort of an answer is acquired
             voice_data = self.say_listen(message, binary, max_prompts[0])
+            print("I got", voice_data)
 
             if voice_data not in valid_answers and num_prompts < max_prompts[1]:
                 # Define all valid options for the provided question
@@ -91,7 +92,7 @@ class Communication():
         num_prompts = 0
         action = None
 
-        while action != Action.BASE.ACCEPT or num_prompts < max_prompts:
+        while action != Action.BASE.ACCEPT and num_prompts < max_prompts:
             # Increase count
             num_prompts += 1
             
@@ -107,7 +108,7 @@ class Communication():
 
             if action is Action.BASE.REPEAT:
                 # Ask to repeat if the recognizer failed
-                self.say("Sorry, could you repeat that?")
+                self.say("Sorry, please repeat your answer.")
                 
             if action is Action.BASE.REJECT:
                 # Ask to type it instead if recognizer service is down
@@ -144,7 +145,6 @@ class Communication():
         Returns:
             (tuple): A tuple consisting of a logic action and voice data
         """
-        print(sr.Microphone.list_microphone_names())
         # Initialize the recognizer
         recognizer = sr.Recognizer()
         

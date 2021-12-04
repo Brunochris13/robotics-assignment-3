@@ -8,7 +8,7 @@ ITEMS = {
     "kitchen": {"pose": {"position": {"x": 1.5, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "centre": {"pose": {"position": {"x": 0, "y": 0, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "tables": [
-        {"id": 0, "pose": {"position": {"x": -1, "y": -4, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
+        #{"id": 0, "pose": {"position": {"x": -1, "y": -4, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
         {"id": 1, "pose": {"position": {"x": -1.5, "y": -6, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "rectangle"},
         #{"id": 0, "pose": {"position": {"x": -3.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
         #{"id": 1, "pose": {"position": {"x": -4, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
@@ -49,7 +49,7 @@ class Restaurant():
         Returns:
             (dict):
         """
-        pass
+        return {"sausage": -10}
 
 
     def get_table_by_id(self, table_id):

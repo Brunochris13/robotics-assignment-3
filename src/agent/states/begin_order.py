@@ -165,6 +165,7 @@ class BeginOrder(State):
 
         # Get the available people
         people = robot.vision.see()
+        people = [(True, 32), (False, 29)]
 
         # Begin the new order based on num people
         robot.orders.append(Order(people=people))
@@ -192,7 +193,7 @@ class BeginOrder(State):
 
         if len(available_tables) == 1:
             # If there's only 1 available table, go to it
-            robot.orders[-1].table = available_tables[0]
+            robot.active_order.table = available_tables[0]
             return self._SubState.GOTO_TABLE
 
         # Ask for a table preference if there are >1
@@ -242,9 +243,9 @@ class BeginOrder(State):
 
         # Tell the menu to every customer and add options like "skip"/"pass"
         robot.communication.say(f"Let me now present you the menu. {speech}")
-        options = robot.restaurant.get_menu().keys() + ["i will pass", "skip"]
+        options = list(robot.restaurant.get_menu().keys()) + ["i will pass", "skip"]
 
-        for i in len(robot.current_order.people):
+        for i in range(len(robot.active_order.people)):
             # Get the action to be performed after order execution
             action = self._single_customer_order(i, robot, options)
             
@@ -254,7 +255,7 @@ class BeginOrder(State):
         
         # Finish taking the order and let the customer(s) know to wait for food
         robot.communication.say(f"I have accepted your order. Wait for food.")
-        robot.current_order.status = OrderStatus.WAITING_FOOD
+        robot.active_order.status = OrderStatus.WAITING_FOOD
         robot.state = Wander()
 
         return self._SubState.GOTO_ENTRANCE
