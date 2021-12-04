@@ -41,6 +41,9 @@ venv.bak/
 .project
 .cproject
 
+# vscode
+.vscode
+
 # qcreator stuff
 CMakeLists.txt.user
 

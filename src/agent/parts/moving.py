@@ -20,7 +20,7 @@ class Moving():
         self.status_subscriber = rospy.Subscriber("/move_base/status", GoalStatusArray, self.status_callback, queue_size=1)
         self.amcl_subscriber = rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.robot_pose_callback, queue_size=10)
 
-        time.sleep(1)
+        time.sleep(5)
 
 
     def init_pose(self):     
@@ -56,8 +56,6 @@ class Moving():
         order_status = self.get_status()
         
         counter = 0
-
-        init_time = time.time()
 
         while order_status != GoalStatus.SUCCEEDED:
 
