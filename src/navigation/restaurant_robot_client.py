@@ -13,6 +13,7 @@ from time import time
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
 from utils.geom import rotateQuaternion, getHeading
+from waiter_robot.srv import Timer, TimerResponse
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
@@ -47,13 +48,13 @@ def pub_goal_pose(x, y, theta):
         checkpoint.pose.orientation, theta)
 
     pub.publish(checkpoint)
-
+    rospy.loginfo("request")
     test_pub()
 
     rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped,
                      _robot_pose_callback, queue_size=10)
 
-    rospy.Subscriber("/timer", Timer, test_callback, queue_size=10)
+    # rospy.Subscriber("/timer", Timer, test_callback, queue_size=10)
 
     global robot_x, robot_y, robot_orientation
     robot_x = float('inf')
@@ -103,12 +104,23 @@ def test_callback(msg):
 
 
 def test_pub():
-    time_pub = rospy.Publisher('/timer', Timer, queue_size=10)
-    t = Timer()
-    t.tableID = random.randint(1,10)
-    t.time = random.randint(1,5)
-    t.done = False
-    time_pub.publish(t)
+    # time_pub = rospy.Publisher('/timer', Timer, queue_size=10)
+    # t = Timer()
+    # t.tableID = random.randint(1,10)
+    # t.time = random.randint(1,5)
+    # t.done = False
+    test_client(random.randint(1,10), random.randint(1,5))
+    # time_pub.publish(t)
+
+def test_client(x, y):
+       rospy.wait_for_service('timer')
+       try:
+            wait = rospy.ServiceProxy('timer', Timer)
+            resp1 = wait(x, y)
+            rospy.loginfo("sent")
+            return resp1
+       except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)
 
 
 def main():

@@ -50,18 +50,17 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-   FILES
-   Order.msg
-   Timer.msg
-)
+# add_message_files(
+#    FILES
+#    Order.msg
+#    Timer.msg
+# )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  Timer.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -168,6 +167,8 @@ catkin_install_python(PROGRAMS
   src/navigation/provide_goal_pose.py
   src/navigation/provide_initial_pose_estimate.py
   src/navigation/amcl.py
+  src/restaurant_node_server.py
+  src/navigation/restaurant_robot_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

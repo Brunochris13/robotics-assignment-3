@@ -1,0 +1,6 @@
+# request
+int64 tableID
+int64 time
+---
+# response
+int64 tableID

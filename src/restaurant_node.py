@@ -35,7 +35,6 @@ def main(states):
         for state in states:
                 state.next()
                 if state.isDone():
-                        rospy.loginfo("done??")
                         state.done = True
                         t = Timer()
                         t.tableID = state.tableID
@@ -43,6 +42,7 @@ def main(states):
                         t.done = state.done
                         pub.publish(t)
         
+        rospy.loginfo('len(states): {}'.format(len(states)))
         states = [state for state in states if state.done is False]
 
 
