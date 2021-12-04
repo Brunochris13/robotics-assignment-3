@@ -13,7 +13,7 @@ from util import rotateQuaternion, getHeading
 
 XY_TOLERANCE = 0.5
 ORIENTATION_TOLERANCE = 0.5
-MAX_TIME = 2.0 #60.0  # Seconds
+MAX_TIME = 60.0  # Seconds
 
 LINEAR_VEL = 0.5
 ANGULAR_VEL = 2.0
