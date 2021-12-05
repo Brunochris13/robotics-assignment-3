@@ -19,30 +19,6 @@ class BeginOrder(State):
 
     def __init__(self):
         self.substate = self._SubState.GOTO_ENTRANCE
-
-
-    def _cancel_if_repeat(self, action, robot):
-        """Cancels the order if the action is `REPEAT`.
-
-        Args:
-            action (Action): The action to be checked
-            robot (Robot): The robot whose attributes to update
-        
-        Returns:
-            (bool): True if action is `REPEAT` and False otherwise
-        """
-        if action is Action.BASE.REPEAT:
-            # Generate sentences for rejecting the order
-            sentence1 = "Are you literally that stupid?"
-            sentence2 = "How many times do I have to ask the same question?"
-            sentence3 = "Begone. I will not serve you today."
-
-            # Say the sentences and cancel the order, switch to state WANDER
-            robot.communication.say(f"{sentence1} {sentence2} {sentence3}")
-            robot.change_state(Action.FLOW.WANDER)
-            robot.end_order(success=False)
-
-        return action is Action.BASE.REPEAT
     
 
     def _build_age_group_priority_queue(self, ages):
@@ -97,7 +73,7 @@ class BeginOrder(State):
                 # If the customer skips it
                 return Action.BASE.IGNORE
 
-            if voice_data in robot.restaurant.get_menu(n18=True) and \
+            if voice_data in robot.restaurant.get_menu(n18=True).keys() and \
                 robot.active_order.people[i][1] <= 22:
                 # If the customer is suspected to be below 22, ask to confirm ID
                 robot.communication.say("Please wait for staff to check your ID.")
@@ -235,9 +211,7 @@ class BeginOrder(State):
 
         Args:
             robot (Robot): The robot whose order to update
-        """
-        # TODO: WAIT TILL POEPLE SIT DOWN BEFORE TELLING THE MENU speel(4)
-        
+        """        
         # Get the list of available menu items along with their prices 
         speech = [f"{k}: {v} pounds" for k, v in robot.restaurant.get_menu().items()]
         speech = '. '.join(speech)
@@ -259,7 +233,7 @@ class BeginOrder(State):
         robot.active_order.status = OrderStatus.WAITING_FOOD
         robot.change_state(Action.FLOW.WANDER)
 
-        # robot.restaurant.set_food_waiting()
+        robot.restaurant.set_food_waiting(robot.active_order.id)
 
         return self._SubState.GOTO_ENTRANCE
             

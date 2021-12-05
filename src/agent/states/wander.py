@@ -15,20 +15,20 @@ class Wander(State):
         self.substate = self._SubState.WANDER
     
 
-    def _closest_table_pose(self, robot, table):
-        robot_x = robot.moving.current_pose.pose.position.x
-        robot_y = robot.moving.current_pose.pose.position.y
-        distances = {}
+    # def _closest_table_pose(self, robot, table):
+    #     robot_x = robot.moving.current_pose.pose.position.x
+    #     robot_y = robot.moving.current_pose.pose.position.y
+    #     distances = {}
 
-        for pose in table.robot_poses:
-            table_x = pose.pose.position.x
-            table_y = pose.pose.position.y
-            table_theta = getHeading(pose.pose.orientation)
-            distances[(table_x, table_y, table_theta)] = euclidean_distance_poses(robot_x, robot_y, table_x, table_y)
+    #     for pose in table.robot_poses:
+    #         table_x = pose.pose.position.x
+    #         table_y = pose.pose.position.y
+    #         table_theta = getHeading(pose.pose.orientation)
+    #         distances[(table_x, table_y, table_theta)] = euclidean_distance_poses(robot_x, robot_y, table_x, table_y)
 
-        xytheta = min(distances, key=distances.get)
+    #     xytheta = min(distances, key=distances.get)
 
-        return make_pose(xytheta[0], xytheta[1], xytheta[2])
+    #     return make_pose(xytheta[0], xytheta[1], xytheta[2])
 
 
     def update(self, robot):
@@ -38,7 +38,7 @@ class Wander(State):
             robot (Robot): The robot to move randomly
         """
         if self.substate is self._SubState.WANDER:
-            self.substate= self.wander(robot)
+            self.substate = self.wander(robot)
         elif self.substate is self._SubState.SWITCH:
             self.substate = self.switch(robot)
     

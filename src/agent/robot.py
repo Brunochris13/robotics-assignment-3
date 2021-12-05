@@ -43,7 +43,7 @@ class Robot():
     def update(self):
 
         self.state.update(self)
-        self.restaurant.update(self.orders)
+        # self.restaurant.update(self.orders)
 
     
     def change_state(self, action):
