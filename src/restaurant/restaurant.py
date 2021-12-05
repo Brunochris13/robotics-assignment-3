@@ -1,11 +1,11 @@
 import math
 import random
 from geometry_msgs.msg import Pose, Point
-from restaurant.table import Table
 import rospy
 # from restaurant.menu import menu
 from .table import Table
 from utils.geom import make_pose
+from waiter_robot.srv import Timer
 
 
 # For faster calculations
@@ -82,8 +82,6 @@ class Restaurant():
         # self.orders = []
         self.order_history = []
 
-        rospy.init_node("restaurant")
-
     
     def get_menu(self, n18=False):
         """Gets the restaurant menu with food names and prices.
@@ -142,14 +140,32 @@ class Restaurant():
 
     def set_food_waiting(self, order_id):
         # PUBLISH TO SERVER HERE
+        print("ordier id{} is waiting for food".format(order_id))
         self.order_ids_waiting_food.append(order_id)
+
+        time = 3
+        response = restaurant_client(order_id, time)
+        while(response is None):
+            print("waiting for food")
+        self.order_ids_waiting_food.remove(response.ID)
+        self.order_ids_food_ready.append(response.ID)
+        print("ordier id{} : food is ready".format(order_id))
+
 
     
     def set_bill_waiting(self, order_id):
         # People finished eating and now wait for bill
         # PUBLISH TO SERVER HERE
+        print("ordier id{} is waiting for bill".format(order_id))
         self.order_ids_waiting_bill.append(order_id)
 
+        time = 1
+        response = restaurant_client(order_id, time)
+        while(response is None):
+            print("waiting for bill")
+        self.order_ids_waiting_bill.remove(response.ID)
+        self.order_ids_bill_ready.append(response.ID)
+        print("ordier id{} : bill is ready".format(order_id))
     
     def get_food_ready(self):
         """Gets the list of order IDs for which the food is ready.
@@ -185,3 +201,30 @@ class Restaurant():
         Or subscribes to a topic to check for any new updates.
         """
         pass
+
+def restaurant_client(id, time):
+       rospy.wait_for_service('timer')
+       try:
+            wait = rospy.ServiceProxy('timer', Timer)
+            response = wait(id, time)
+            rospy.loginfo("client: I got a message!")
+            print("client: I got a message!")
+            return response
+       except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)    
+
+if __name__== '__main__':
+        r = Restaurant()
+        print(r.order_ids_waiting_food)
+        print(r.order_ids_food_ready)
+        r.set_food_waiting(2)
+        print(r.order_ids_waiting_food)
+        print(r.order_ids_food_ready)
+
+        print("---")
+        
+        print(r.order_ids_waiting_bill)
+        print(r.order_ids_bill_ready)
+        r.set_bill_waiting(3)
+        print(r.order_ids_waiting_bill)
+        print(r.order_ids_bill_ready)
