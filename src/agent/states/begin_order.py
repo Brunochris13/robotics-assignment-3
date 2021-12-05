@@ -48,6 +48,9 @@ class BeginOrder(State):
         """
         pass
 
+    def _get_table_by_age(self, available_tables, ages):
+        pass
+
 
     def _single_customer_order(self, i, robot, options):
         """Updates the robot's current order with customer's food order.
@@ -164,8 +167,8 @@ class BeginOrder(State):
         if len(available_tables) == 0:
             # Cancel the order if there are no tables available to use
             robot.communication.say("Sorry, no more tables. Bye bye.")
+            robot.change_state(Action.FLOW.WANDER)
             robot.end_order(success=False)
-            robot.state = Wander()
             return self._SubState.GOTO_ENTRANCE
 
         if len(available_tables) == 1:
@@ -196,12 +199,12 @@ class BeginOrder(State):
         else:
             # Get the ages, find table priorities and assign a table
             ages = [person[1] for person in robot.active_order.people]
-            queue = self._build_age_group_priority_queue(ages)
-            table = self._get_table_by_queue(available_tables, queue)
+            # queue = self._build_age_group_priority_queue(ages)
+            table = self._get_table_by_age(available_tables, ages)
             robot.active_order.table = table
         
         # Inform restaurant to update table availability
-        robot.restaurant.set_occupied_table(robot.active_order.table.id)
+        robot.restaurant.set_table_occupancy(robot.active_order.table.id)
 
         return self.next(self.substate)
     

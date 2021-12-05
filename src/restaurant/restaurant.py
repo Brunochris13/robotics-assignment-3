@@ -120,13 +120,13 @@ class Restaurant():
         return [table for table in self.tables if table.age_group == age_group]
 
 
-    def set_occupied_table(self, table_id):
+    def set_table_occupancy(self, table_id, occupied=True):
         """Sets the table as occupied (e.g. in database)
 
         Args:
             table_id (int):
         """
-        self.get_table_by_id(table_id).occupied = True
+        self.get_table_by_id(table_id).occupied = occupied
 
 
     def get_available_tables(self, num_people=1):

@@ -75,6 +75,7 @@ class Robot():
         else:
             order.status = OrderStatus.CANCELED
         
+        self.restaurant.set_table_occupancy(order.table.id, False)
         self.restaurant.order_history.append(order)
         self.orders.remove(order)
 
