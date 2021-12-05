@@ -21,8 +21,7 @@ class Status(Enum):
 class Robot():
     def __init__(self):
         rospy.init_node("waiter_robot")
-        
-        self.orders = []
+        self.orders = [] 
         self.active_order = None
         
         self.moving = Moving()
@@ -41,6 +40,7 @@ class Robot():
 
 
     def update(self):
+
         self.state.update(self)
         self.restaurant.update(self.orders)
 

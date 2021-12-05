@@ -2,8 +2,8 @@ from agent.actions import Action
 import rospy
 import random
 from .abstract_state import State
-from utils.geom import make_pose
 from enum import Enum, auto
+from utils.geom import make_pose, euclidean_distance_poses, getHeading
 
 class Wander(State):
     class _SubState(Enum):
@@ -43,8 +43,26 @@ class Wander(State):
         # random_pose = make_pose(0, ran_y)
         # print(f"Approaching (0, {ran_y})")
 
-        return self.next(self.substate)# self.goto_pose(robot, random_pose)
+        # random_pose = random_table.pos
+        # self.goto_pose(robot, random_pose)
+        self.goto_pose(robot, self._closest_table_pose(robot, random_table))
 
+        return self.next(self.substate)# self.goto_pose(robot, random_pose)
+        
+
+    def _closest_table_pose(self, robot, table):
+        robot_x = robot.moving.current_pose.pose.position.x
+        robot_y = robot.moving.current_pose.pose.position.y
+        distances = {}
+        for pose in table.robot_poses:
+            table_x = pose.pose.position.x
+            table_y = pose.pose.position.y
+            table_theta = getHeading(pose.pose.orientation)
+            distances[(table_x, table_y, table_theta)] = euclidean_distance_poses(robot_x, robot_y, table_x, table_y)
+
+        xytheta = min(distances, key=distances.get)
+        return make_pose(xytheta[0], xytheta[1], xytheta[2])
+            
 
     def switch(self, robot):
         """Switches state if either of them is triggered.

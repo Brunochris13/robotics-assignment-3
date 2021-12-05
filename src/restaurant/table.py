@@ -2,11 +2,13 @@ import math
 from utils.geom import is_near
 
 class Table():
-    def __init__(self, id, pos, max_people, entrance_pos=None, centre_pos=None):
+    def __init__(self, id, pos, robot_poses, max_people, entrance_pos=None, centre_pos=None):
         self.id = id
         self.pos = pos
+        self.robot_poses = robot_poses
         self.max_people = max_people
         self.age_group = self.assign_age_group(entrance_pos, centre_pos)
+        self.occupied = False
     
 
     def describe(self, show_id=True, show_pose=True, show_max_people=False):

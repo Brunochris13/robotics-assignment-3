@@ -14,6 +14,11 @@
   <!-- <node pkg="amcl" name="amcl" type="amcl" args="scan:=base_scan"/> -->
   <node pkg="waiter_robot" name="amcl" type="amcl.py" args="scan:=base_scan" output="screen"/>
 
+ <!-- Robot node -->
+<!-- <node pkg="waiter_robot" name="restaurant_robot" type="restaurant_robot.py"/> -->
+ <!-- Restaurant node -->
+<!-- <node pkg="waiter_robot" name="restaurant" type="restaurant_node.py" output="screen"/> -->
+
   <!-- Provide Initial Pose Estimate -->
   <node pkg="waiter_robot" name="provide_initial_pose_estimate" type="provide_initial_pose_estimate.py"/>
 
