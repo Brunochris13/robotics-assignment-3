@@ -4,6 +4,8 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <tf/tf.h>
 #include <set>
+#include <map>
+#include <algorithm>
 
 /** for global path planner interface */
 #include <costmap_2d/costmap_2d_ros.h>
@@ -41,6 +43,7 @@ public:
   float resolution;
   costmap_2d::Costmap2DROS *costmap_ros_;
   costmap_2d::Costmap2D *costmap_;
+  std::vector<int> visited;
   bool initialized_;
   int width;
   int height;
@@ -61,9 +64,12 @@ public:
   void getGridSquareCoordinates(int index, float &x, float &y);
   bool isCoordinateInBounds(float x, float y);
   vector<int> runAStarOnGrid(int startGridSquare, int goalGridSquare);
-  vector<int> findPath(int startGridSquare, int goalGridSquare, float g_score[]);
-  vector<int> constructPath(int startGridSquare, int goalGridSquare, float g_score[]);
-  void addNeighborGridSquareToOpenList(multiset<GridSquare> &OPL, int neighborGridSquare, int goalGridSquare, float g_score[]);
+  // vector<int> findPath(int startGridSquare, int goalGridSquare, float g_score[]);
+  vector<int> findPath(int startGridSquare, int goalGridSquare, std::map<int, float> &g_score);
+  // vector<int> constructPath(int startGridSquare, int goalGridSquare, float g_score[]);
+  vector<int> constructPath(int startGridSquare, int goalGridSquare,  std::map<int, float> &g_score);
+  // void addNeighborGridSquareToOpenList(multiset<GridSquare> &OPL, int neighborGridSquare, int goalGridSquare, float g_score[]);
+  void addNeighborGridSquareToOpenList(multiset<GridSquare> &openSquaresList, int neighborGridSquare, int goalGridSquare, std::map<int, float> g_score);
   vector<int> findFreeNeighborGridSquare(int gridSquareIndex);
   bool isStartAndGoalValid(int startGridSquare, int goalGridSquare);
   float getMoveCost(int gridSquareIndex1, int gridSquareIndex2);
