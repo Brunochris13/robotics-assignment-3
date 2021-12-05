@@ -100,7 +100,7 @@ def _robot_pose_callback(pose):
 
 def test_callback(msg):
     rospy.loginfo("I got a message")
-    rospy.loginfo('tableID: {}, maxTime: {}, done: {}'.format(msg.tableID, msg.time, msg.done))
+    rospy.loginfo('tableID: {}, maxTime: {}, done: {}'.format(msg.ID, msg.time, msg.done))
 
 
 def test_pub():
@@ -115,9 +115,9 @@ def test_pub():
 def test_client(x, y):
        rospy.wait_for_service('timer')
        try:
-            wait = rospy.ServiceProxy('timer', Timer)
-            response = wait(x, y)
-            rospy.loginfo("sent")
+            timer = rospy.ServiceProxy('timer', Timer)
+            response = timer(x, y)
+            rospy.loginfo("I got a response")
             return response
        except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
@@ -140,6 +140,8 @@ def main():
     # rospy.Subscriber("/odom", Odometry, monitor.callback)
 
 if __name__=='__main__':
+
+
     rospy.init_node('restaurant_robot')
     rate_interval = rospy.Rate(1)
     while not rospy.is_shutdown():

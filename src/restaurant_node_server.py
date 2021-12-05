@@ -24,11 +24,11 @@ from waiter_robot.srv import Timer, TimerResponse
                 
 
 def callback(srv):
-        tableID = srv.tableID
+        ID = srv.ID
         time = srv.time
-        rospy.loginfo('tableID: {}, maxTime: {}'.format(tableID, time))
+        rospy.loginfo('tableID: {}, maxTime: {}'.format(ID, time))
         rospy.sleep(time * 10)
-        return TimerResponse(tableID)
+        return TimerResponse(ID)
         
 
 # def main(states):
