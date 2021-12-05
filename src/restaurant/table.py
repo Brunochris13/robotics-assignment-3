@@ -2,9 +2,9 @@ import math
 from utils.geom import is_near
 
 class Table():
-    def __init__(self, id, pos, robot_poses, max_people, entrance_pos=None, centre_pos=None):
+    def __init__(self, id, pose, robot_poses, max_people, entrance_pos=None, centre_pos=None):
         self.id = id
-        self.pos = pos
+        self.pose = pose
         self.robot_poses = robot_poses
         self.max_people = max_people
         self.age_group = self.assign_age_group(entrance_pos, centre_pos)
@@ -18,12 +18,13 @@ class Table():
             description += f"{self.id} "
         
         if show_pose:
-            description += f"({self.pos.pose.position.x}, {self.pos.pose.position.y}) "
+            description += f"({self.pose.pose.position.x}, {self.pose.pose.position.y}) "
         
         if show_max_people:
             description += f"[MAX: {self.max_people}]"
 
         return description
+
 
     def assign_age_group(self, entrance_pos, centre_pos):
         MAX_AGE = 100
@@ -34,7 +35,7 @@ class Table():
         
         radius = None # TODO e.g., sqrt(x^2 +y^2)
 
-        if not is_near(self.pos, centre_pos, radius):
+        if not is_near(self.pose, centre_pos, radius):
             raise AttributeError("Table is outside restaurant boundaries!")
         
         table_distance_from_entrance = None # TODO

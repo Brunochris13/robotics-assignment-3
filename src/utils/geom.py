@@ -1,37 +1,74 @@
 import math
 import time
-from geometry_msgs.msg import Quaternion, PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import Point, Quaternion, PoseStamped, PoseWithCovarianceStamped
 
 
-def make_pose_cov(x, y):
+def _make_point_quaternion(x, y, theta):
+    # Create point and quaternion
+    point = Point(x=x, y=y, z=0)
+    quaternion = Quaternion(x=0, y=0, z=0, w=1)
+
+    if theta != 0:
+        # Rotate the quaternion if theta angle provided
+        quaternion = rotateQuaternion(quaternion, theta)
+    
+    return point, quaternion
+
+
+def make_pose_cov(x, y, theta=0):
+    # Create Covariance Pose, add meta
     pose = PoseWithCovarianceStamped()
-    pose.pose.pose.position.x = x
-    pose.pose.pose.position.y = y
-    pose.pose.pose.position.z = 0
-    pose.pose.pose.orientation.x = 0
-    pose.pose.pose.orientation.y = 0
-    pose.pose.pose.orientation.z = 0
-    pose.pose.pose.orientation.w = 1
-    # pose.header.stamp.secs = time.time()
     pose.header.frame_id = "map"
+    # pose.header.stamp.secs = time.time()
+
+    # Get the position and the orientation based on x, y, theta
+    position, orientation = _make_point_quaternion(x, y, theta)
+
+    # Assign acquired pose attributes
+    pose.pose.pose.position = position
+    pose.pose.pose.orientation = orientation
+
     return pose
 
 
 def make_pose(x, y, theta=0):
     pose = PoseStamped()
-    pose.pose.position.x = x
-    pose.pose.position.y = y
-    pose.pose.position.z = 0
-    pose.pose.orientation.x = 0
-    pose.pose.orientation.y = 0
-    pose.pose.orientation.z = 0
-    pose.pose.orientation.w = 1
-    # pose.header.stamp.secs = time.time()
     pose.header.frame_id = "map"
+    # pose.header.stamp.secs = time.time()
 
-    if theta != 0:
-        pose.pose.orientation = rotateQuaternion(pose.pose.orientation, theta)
+    # Get the position and the orientation based on x, y, theta
+    position, orientation = _make_point_quaternion(x, y, theta)
+
+    # Assign the pose attributes
+    pose.pose.position = position
+    pose.pose.orientation = orientation
+    
     return pose
+
+
+def get_closest_pose(source_pose, target_poses):
+
+    # Get source x y, initialize distances
+    source_x = source_pose.pose.position.x
+    source_y = source_pose.pose.position.y
+    distances = {}
+
+    for target_pose in target_poses:
+        # Get target x, y and theta parameters
+        target_x = target_pose.pose.position.x
+        target_y = target_pose.pose.position.y
+        target_theta = getHeading(target_pose.pose.orientation)
+        
+        # Calculate the euclidean distance from source to target, add to dict
+        val = euclidean_distance_poses(source_x, source_y, target_x, target_y)
+        distances[(target_x, target_y, target_theta)] = val
+
+    # Get the entry with lowest euclid distance
+    xytheta = min(distances, key=distances.get)
+
+    return make_pose(xytheta[0], xytheta[1], xytheta[2])
+
+
 
 
 def is_near(source_pose, target_pose, radius=1):

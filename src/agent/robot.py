@@ -19,23 +19,24 @@ class Status(Enum):
 
 
 class Robot():
-    def __init__(self):
-        rospy.init_node("waiter_robot")
+    def __init__(self, restaurant):
+        # Assign the restaurant object
+        self.restaurant = restaurant
+
+        # Init order list
         self.orders = [] 
         self.active_order = None
         
+        # Init the robot state
+        self.state = Wander()
+
+        # Init the robot parts
         self.moving = Moving()
         self.vision = Vision()
         self.communication = Communication()
-        self.restaurant = Restaurant()
 
-        self.state_wander = Wander()
-        self.state_begin_order = BeginOrder()
-        self.state_bring_food = BringFood()
-        self.state_end_order = EndOrder()
-
-        self.state = Wander()
-
+        # Init waiter node and the pose
+        rospy.init_node("waiter_robot")
         self.moving.init_pose()
 
 
@@ -50,11 +51,12 @@ class Robot():
             self.state = Wander()
         elif action is Action.FLOW.BEGIN_ORDER:
             self.state = BeginOrder()
-            self.state.update(self)
         elif action is Action.FLOW.BRING_FOOD:
             self.state = BringFood()
         elif action is Action.FLOW.END_ORDER:
             self.state = EndOrder()
+        
+        rospy.loginfo(f"Changed state to {action}")
     
 
     def end_order(self, order_id=None, success=True):

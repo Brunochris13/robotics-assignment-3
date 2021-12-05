@@ -143,7 +143,7 @@ class BeginOrder(State):
             self.substate = self.find_table(robot)
         elif self.substate is self._SubState.GOTO_TABLE:
             # If robot has not yet guided the people
-            self.substate = self.goto_pose(robot, robot.active_order.table.pos)
+            self.substate = self.goto_pose(robot, robot.active_order.table.pose)
         elif self.substate is self._SubState.TAKE_ORDER:
             # If robot has not yet accepted the order
             self.substate = self.take_order(robot)
@@ -157,7 +157,8 @@ class BeginOrder(State):
         """
         # Greeting messages
         AVAILABLE_GREETINGS = [
-            "Greetings. I am Tob Taiwer and I will serve you today.",
+            "Greetings. I will serve you today.",
+            "Hello, let me be your waiter today."
         ]
 
         # Say a randomly chosen welcoming from the available ones
@@ -256,7 +257,9 @@ class BeginOrder(State):
         # Finish taking the order and let the customer(s) know to wait for food
         robot.communication.say(f"I have accepted your order. Wait for food.")
         robot.active_order.status = OrderStatus.WAITING_FOOD
-        robot.state = Wander()
+        robot.change_state(Action.FLOW.WANDER)
+
+        # robot.restaurant.set_food_waiting()
 
         return self._SubState.GOTO_ENTRANCE
             
