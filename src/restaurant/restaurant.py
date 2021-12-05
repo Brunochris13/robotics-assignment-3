@@ -145,8 +145,8 @@ class Restaurant():
 
         time = 3
         response = restaurant_client(order_id, time)
-        while(response is None):
-            print("waiting for food")
+        # while(response is None):
+        #     print("waiting for food")
         self.order_ids_waiting_food.remove(response.ID)
         self.order_ids_food_ready.append(response.ID)
         print("ordier id{} : food is ready".format(order_id))
@@ -161,8 +161,8 @@ class Restaurant():
 
         time = 1
         response = restaurant_client(order_id, time)
-        while(response is None):
-            print("waiting for bill")
+        # while(response is None):
+        #     print("waiting for bill")
         self.order_ids_waiting_bill.remove(response.ID)
         self.order_ids_bill_ready.append(response.ID)
         print("ordier id{} : bill is ready".format(order_id))
