@@ -1,8 +1,8 @@
 import math
 from geometry_msgs.msg import Pose, Point
-from table import Table
+from restaurant.table import Table
 import rospy
-from menu import menu
+from restaurant.menu import menu
 from .table import Table
 from utils.geom import make_pose
 
@@ -13,7 +13,7 @@ PI_2 = PI/2
 
 ITEMS = {
     "entrance": {"pose": {"position": {"x": 0, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
-    "kitchen": {"pose": {"position": {"x": 1.5, "y": 5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
+    "kitchen": {"pose": {"position": {"x": 3, "y": 4.5, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "centre": {"pose": {"position": {"x": 0, "y": 0, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}},
     "tables": [
         {"id": 0, "pose": {"position": {"x": -3.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square",
