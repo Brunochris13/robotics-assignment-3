@@ -27,7 +27,6 @@ def callback(srv):
         tableID = srv.tableID
         time = srv.time
         rospy.loginfo('tableID: {}, maxTime: {}'.format(tableID, time))
-        
         rospy.sleep(time * 10)
         return TimerResponse(tableID)
         
