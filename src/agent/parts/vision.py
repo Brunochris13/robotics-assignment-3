@@ -2,15 +2,16 @@
 import os
 import cv2
 import numpy as np
+import random
 
 WEIGHTS_DIR = "../../../resources/weights/"
-# WEIGHTS_DIR = "resources/weights"
+IMAGE_DIR = "../../../resources/img/"
 
 class Vision():
     def __init__(self):
-        return
-        print(os.path.isdir(WEIGHTS_DIR))
-        print(os.getcwd())
+        
+        # print(os.path.isdir(WEIGHTS_DIR))
+        # print(os.getcwd())
         # https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt
         self.FACE_PROTO = WEIGHTS_DIR + "deploy.prototxt.txt"
         # https://raw.githubusercontent.com/opencv/opencv_3rdparty/dnn_samples_face_detector_20180205_fp16/res10_300x300_ssd_iter_140000_fp16.caffemodel
@@ -82,7 +83,7 @@ class Vision():
         # Display Image on screen
         cv2.imshow(title, img)
         # Mantain output until user presses a key
-        cv2.waitKey(0)
+        cv2.waitKey(1000)
         # Destroy windows when user presses a key
         cv2.destroyAllWindows()
 
@@ -130,13 +131,13 @@ class Vision():
         return self.age_net.forward()
 
 
-    def predict_age_and_gender(self, input_path: str):
+    def predict_age_and_gender(self, image):
         """Predict the gender of the faces showing in the image"""
         # Initialize frame size
         # frame_width = 1280
         # frame_height = 720
         # Read Input Image
-        img = cv2.imread(input_path)
+        img = image
         # resize the image, uncomment if you want to resize the image
         # img = cv2.resize(img, (frame_width, frame_height))
         # Take a copy of the initial image and resize it
@@ -191,7 +192,14 @@ class Vision():
         Returns:
             (list(tuple(bool, int))): 
         """
-        return []
+        
+        file_list = os.listdir(IMAGE_DIR)
+        img_name = random.choice(file_list)
+        img = cv2.imread(IMAGE_DIR + img_name)
+        self.display_img("Customer",img)
+        ppl = self.predict_age_and_gender(img)
+
+        return ppl
 
 
 # class Vision():
@@ -214,12 +222,7 @@ class Vision():
 
 
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    pass
-    #import sys
-    #input_path = sys.argv[1]
-    #detector = Vision()
-    #detector.predict_age_and_gender(input_path)
+# if __name__ == '__main__':
     
-    #def see(self, source=None):
-    #    pass
+#     v = Vision()
+#     v.see()
