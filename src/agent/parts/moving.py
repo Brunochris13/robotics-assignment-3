@@ -3,13 +3,13 @@ import time
 import rospy
 
 from time import time
-from navigation.provide_goal_pose import MAX_TIME, pub_goal_pose
 from actionlib_msgs.msg import GoalStatus, GoalStatusArray
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Twist
 from move_base_msgs.msg import MoveBaseAction
 from actionlib import SimpleActionClient
-from utils.geom import make_pose_cov, make_pose
+from utils.geom import make_pose_cov, make_pose, PI_2
 
+MAX_TIME = 60.0
 
 class Moving():
     MAX_TIME_FOR_NAVIGATION = 60.0  # Seconds
@@ -20,7 +20,7 @@ class Moving():
 
     def __init__(self, basename=""):
         self.name = basename + "[MOVING] "
-        self.initial_pose = make_pose_cov(0, -7)
+        self.initial_pose = make_pose_cov(0, -7, theta=PI_2)
         self.current_pose = make_pose(0, -7)
         self.status = None
         self.recovery_counter = 0

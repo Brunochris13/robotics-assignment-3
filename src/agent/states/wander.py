@@ -35,7 +35,7 @@ class Wander(State):
         # Choose a random table to move to in the restaurant
         random_table = random.choice(robot.restaurant.tables)
 
-        return self.next(self.substate)#self.goto_table(robot, random_table)
+        return self.goto_table(robot, random_table)
             
 
     def switch(self, robot):

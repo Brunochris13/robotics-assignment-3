@@ -1,16 +1,10 @@
-import math
 import random
 import rospy
 from .inventory import Table
-from utils.geom import make_pose
+from utils.geom import make_pose, PI, PI_2
 from waiter_robot.srv import Timer, TimerResponse
 import threading
 from time import sleep
-
-
-# For faster calculations
-PI = math.pi
-PI_2 = PI/2
 
 
 INVENTORY = {
@@ -171,15 +165,6 @@ class Restaurant():
             (list(int)): A list of order IDs with food/bill ready
         """
         return [order[0] for order in self.order_ids_ready if order[1] is is_food]
-
-    
-    def get_bill_ready(self):
-        """Gets the list of order IDs for which the bill is ready.
-
-        Returns:
-            (list(int)): A list of order IDs which finished eating
-        """
-        return self.order_ids_food_ready
     
 
     def new_customer_exists(self):
@@ -190,42 +175,3 @@ class Restaurant():
         """
         return random.choice([True, False])
 
-
-    def update(self, orders):
-        """Updates the state of the restaurant.
-
-        For example, reads a .txt file to see if someone has finished eating.
-        Or subscribes to a topic to check for any new updates.
-        """
-        pass
-
-
-
-
-
-def restaurant_client(id, time):
-       rospy.wait_for_service('timer')
-       try:
-            wait = rospy.ServiceProxy('timer', Timer)
-            response = wait(id, time)
-            rospy.loginfo("client: I got a message!")
-            print("client: I got a message!")
-            return response
-       except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)    
-
-if __name__== '__main__':
-        r = Restaurant()
-        print(r.order_ids_waiting_food)
-        print(r.order_ids_food_ready)
-        r.set_food_waiting(2)
-        print(r.order_ids_waiting_food)
-        print(r.order_ids_food_ready)
-
-        print("---")
-        
-        print(r.order_ids_waiting_bill)
-        print(r.order_ids_bill_ready)
-        r.set_bill_waiting(3)
-        print(r.order_ids_waiting_bill)
-        print(r.order_ids_bill_ready)

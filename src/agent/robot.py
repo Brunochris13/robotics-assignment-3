@@ -24,13 +24,12 @@ class Robot():
         # Init the robot state
         self.state = Wander()
 
-        # Init the robot parts
+        # Init parts that make up robot
         self.moving = Moving(self.name)
         self.vision = Vision(self.name)
         self.communication = Communication(self.name)
 
         # Init waiter node and the pose
-        # rospy.init_node("waiter_robot")
         self.moving.init_pose()
 
 

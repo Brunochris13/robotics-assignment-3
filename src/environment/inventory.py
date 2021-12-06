@@ -4,7 +4,6 @@ from enum import Enum, auto
 class OrderStatus(Enum):
     WAITING_SEAT = auto()
     WAITING_FOOD = auto()
-    PROCESS_FOOD = auto()
     WAITING_BILL = auto()
     FINISHED = auto()
     CANCELED = auto()

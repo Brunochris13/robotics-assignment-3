@@ -151,6 +151,8 @@ class BeginOrder(State):
         num_people = len(robot.active_order.people)
         available_tables = robot.restaurant.get_available_tables(num_people)
 
+        print("Available tables:", [t.id for t in available_tables])
+
         if len(available_tables) == 0:
             # Cancel the order if there are no tables available to use
             robot.communication.say("Sorry, no more tables. Bye bye.")
@@ -158,7 +160,7 @@ class BeginOrder(State):
             robot.end_order(success=False)
             return self._SubState.GOTO_ENTRANCE
 
-        if True:#len(available_tables) == 1:
+        if len(available_tables) == 1:
             # If there's only 1 available table, go to it
             robot.active_order.table = available_tables[0]
 

@@ -16,7 +16,7 @@ class BringFood(State):
         if self.substate is self._SubState.GOTO_KITCHEN:
             self.substate = self.goto_pose(robot, robot.restaurant.kitchen)
         elif self.substate is self._SubState.GOTO_TABLE:
-            self.substate = self.goto_pose(robot, robot.active_order.table.pose)
+            self.substate = self.goto_table(robot, robot.active_order.table)
         elif self.substate is self._SubState.SERVE_PEOPLE:
             self.substate = self.serve_people(robot)
 
@@ -29,10 +29,11 @@ class BringFood(State):
         """
         # Inform people about the brought food, change order status and state
         robot.communication.say("Enjoy your meal. You have 5 seconds to eat.")
-        robot.active_order.status = OrderStatus.WAITING_FOOD
+        robot.active_order.status = OrderStatus.WAITING_BILL
         robot.change_state(Action.FLOW.WANDER)
 
-        robot.restaurant.set_bill_waiting(robot.active_order.id)
+        robot.restaurant.order_ids_ready.remove((robot.active_order.id, True))
+        robot.restaurant.request_waiting(robot.active_order.id, is_food=False)
 
         return self._SubState.GOTO_KITCHEN
         

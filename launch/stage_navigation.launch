@@ -20,7 +20,7 @@
 <!-- <node pkg="waiter_robot" name="restaurant" type="restaurant_node.py" output="screen"/> -->
 
   <!-- Provide Initial Pose Estimate -->
-  <node pkg="waiter_robot" name="provide_initial_pose_estimate" type="provide_initial_pose_estimate.py"/>
+  <!-- <node pkg="waiter_robot" name="provide_initial_pose_estimate" type="provide_initial_pose_estimate.py"/> -->
 
   <!-- move_base -->
     <node name="move_base" pkg="move_base" type="move_base" respawn="false" output="screen">
