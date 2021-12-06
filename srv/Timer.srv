@@ -1,8 +1,0 @@
-# request
-int32 id
-bool is_food
-int32 time
----
-# response
-int32 id
-bool is_food
