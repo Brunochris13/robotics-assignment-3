@@ -1,6 +1,7 @@
+import rospy
 from abc import ABC, abstractmethod
-
-from utils.geom import is_facing, is_near
+from ..actions import Action
+from utils.geom import get_closest_pose
 
 
 class State(ABC):
@@ -12,6 +13,30 @@ class State(ABC):
     @abstractmethod
     def update(self, robot):
         pass
+
+
+    def _cancel_if_repeat(self, action, robot):
+        """Cancels the order if the action is `REPEAT`.
+
+        Args:
+            action (Action): The action to be checked
+            robot (Robot): The robot whose attributes to update
+        
+        Returns:
+            (bool): True if action is `REPEAT` and False otherwise
+        """
+        if action is Action.BASE.REPEAT:
+            # Generate sentences for rejecting the order
+            sentence1 = "Are you literally that stupid?"
+            sentence2 = "How many times do I have to ask the same question?"
+            sentence3 = "Begone. I will not serve you today."
+
+            # Say the sentences and cancel the order, switch to state WANDER
+            robot.communication.say(f"{sentence1} {sentence2} {sentence3}")
+            robot.change_state(Action.FLOW.WANDER)
+            robot.end_order(success=False)
+
+        return action is Action.BASE.REPEAT
     
 
     def next(self, substate, transit=True):
@@ -72,28 +97,25 @@ class State(ABC):
         return members[index - 1]
 
     
-    def goto_pose(self, robot, pose, radius=20):
-        """Goes to the assigned position.
+    def goto_pose(self, robot, pose):
+        """Moves robot to the assigned position.
 
         Args:
             robot (Robot): The robot whose position to update
+            pose (PoseStamped): The position to move the robot to
         """
-        """
-        # Completions
-        at_pos = [
-            is_near(pos, robot.pos, radius),
-            is_facing(robot.pos, robot.heading, pos)
-        ]
-
-        if not at_pos[0]:
-            # Move closer to table
-            robot.moving.move_to(pos)
-        
-        if not at_pos[1]:
-            # Face more towards table
-            robot.moving.turn_to(pos)
-        """
-
+        # Move robot to given pose
         robot.moving.goto_pose(pose)
         
-        return self.next(self.substate)# self.next(self.substate, all(at_pos))
+        return self.next(self.substate)
+
+
+    def goto_table(self, robot, table):
+
+        # Get robot pose and poses it can come
+        robot_pose = robot.moving.current_pose
+        table_poses = table.robot_poses
+
+        rospy.loginfo(f"{robot.moving.name}Approaching table {table.id}")
+
+        return self.goto_pose(robot, get_closest_pose(robot_pose, table_poses))

@@ -1,6 +1,9 @@
 import math
-import time
 from geometry_msgs.msg import Point, Quaternion, PoseStamped, PoseWithCovarianceStamped
+
+
+PI = math.pi
+PI_2 = PI / 2
 
 
 def _make_point_quaternion(x, y, theta):

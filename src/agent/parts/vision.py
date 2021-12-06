@@ -3,12 +3,16 @@ import os
 import cv2
 import numpy as np
 import random
+import re
+import rospy
+from numpy.core.fromnumeric import shape
 
-WEIGHTS_DIR = "../../../resources/weights/"
-IMAGE_DIR = "../../../resources/img/"
+WEIGHTS_DIR = "resources/weights/"
+IMAGE_DIR = "resources/img/"
 
 class Vision():
-    def __init__(self):
+    def __init__(self, basename=""):
+        self.name = basename + "[VISION] "
         
         # print(os.path.isdir(WEIGHTS_DIR))
         # print(os.getcwd())
@@ -34,8 +38,8 @@ class Vision():
         # download from: https://drive.google.com/open?id=1kWv0AjxGSN0g31OeJa02eBGM0R_jcjIl
         self.AGE_PROTO = WEIGHTS_DIR + 'age_net.caffemodel'
         # Represent the 8 age classes of this CNN probability layer
-        self.AGE_INTERVALS = ['(0, 2)', '(4, 6)', '(8, 12)', '(15, 20)',
-                         '(25, 32)', '(38, 43)', '(48, 53)', '(60, 100)']
+        self.AGE_INTERVALS = ['(0, 2)', '(4, 6)', '(8, 12)', '(13, 19)',
+                         '(25, 33)', '(38, 44)', '(48, 54)', '(60, 100)']
 
         # Initialize frame size
         self.frame_width = 1280
@@ -83,7 +87,7 @@ class Vision():
         # Display Image on screen
         cv2.imshow(title, img)
         # Mantain output until user presses a key
-        cv2.waitKey(1000)
+        cv2.waitKey(3000)
         # Destroy windows when user presses a key
         cv2.destroyAllWindows()
 
@@ -161,7 +165,7 @@ class Vision():
             age_confidence_score = age_preds[0][i]
             label = f"{gender}-{gender_confidence_score*100:.1f}%, {age}-{age_confidence_score*100:.1f}%"
             ppl.append((gender,age))
-            print(label)
+            rospy.loginfo(self.name + label)
 
         return ppl
             # # Draw the box
@@ -185,7 +189,18 @@ class Vision():
         # # Cleanup
         # cv2.destroyAllWindows()
 
-    
+    def formater(self, ppl):
+        people = []
+        for person in ppl:
+            gender, age = person
+            gender_bool = gender == "Female"
+            age = re.findall(r'\d+', age)
+            age = (int(age[0]) + int(age[1])) / 2
+            people.append((gender_bool, age))
+
+        return people
+
+
     def see(self):
         """Gets the list of genders and ages representing each person.
 
@@ -198,6 +213,9 @@ class Vision():
         img = cv2.imread(IMAGE_DIR + img_name)
         self.display_img("Customer",img)
         ppl = self.predict_age_and_gender(img)
+        ppl = self.formater(ppl)
+        ages = [person[1] for person in ppl]
+        rospy.loginfo(self.name + f"{ages}")
 
         return ppl
 
@@ -222,7 +240,7 @@ class Vision():
 
 
 # Press the green button in the gutter to run the script.
-# if __name__ == '__main__':
+if __name__ == '__main__':
     
-#     v = Vision()
-#     v.see()
+    v = Vision()
+    v.see()

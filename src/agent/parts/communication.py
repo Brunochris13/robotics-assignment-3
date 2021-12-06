@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import rospy
 from gtts import gTTS
 import os
 import subprocess
@@ -7,28 +8,32 @@ import speech_recognition as sr
 from ..actions import Action
 
 class Communication():
-    def __init__(self):
-        self.mname = "[COMMUNICATION] "
+    def __init__(self, basename=""):
+        self.name = basename + "[COMMUNICATION] "
         self.FNULL = open(os.devnull, 'w')
 
-    def play(self, f):
-        command = ["ffplay", f, "-nodisp", "-autoexit"]
+
+    def play(self, filepath):
+        command = ["ffplay", filepath, "-nodisp", "-autoexit"]
         subprocess.call(command, stdout=self.FNULL, stderr=subprocess.STDOUT)
 
+
+    def record(self, filepath, dur=3):
+        command = ["arecord", "-d", str(dur), "-f", "cd", filepath]
+        subprocess.call(command, stdout=self.FNULL, stderr=subprocess.STDOUT)
+
+
     def say(self, message):
-        print(message)
+        rospy.loginfo(self.name + message)
         tts = gTTS(text=message, lang='en-uk')
         tts.save("temp.mp3")
         self.play("temp.mp3")
         os.remove("temp.mp3")
 
-    def beep(self):
-        print(self.mname + "Beeping")
-        # self.play("sound/ap-success.mp3")
 
     def prompt(self):
-        print(self.mname + "Prompt")
-        # self.play("sound/hw-insert.mp3")
+        rospy.loginfo(self.name + "Prompt")
+        self.play("resources/audio/prompt.mp3")
 
 
     def ask(self, message, valid_answers=[], binary=False, max_prompts=(3, 3)):
@@ -51,7 +56,7 @@ class Communication():
 
             # Ask the question and wait until some sort of an answer is acquired
             voice_data = self.say_listen(message, binary, max_prompts[0])
-            print("I got", voice_data)
+            rospy.loginfo(self.name + "Acquired answer: " + str(voice_data))
 
             if voice_data not in valid_answers and num_prompts < max_prompts[1]:
                 # Define all valid options for the provided question
@@ -87,7 +92,7 @@ class Communication():
         return voice_data
     
 
-    def listen(self, max_prompts=3, source=None):
+    def listen(self, max_prompts=3, source=None, dur=5):
         # Init variables
         num_prompts = 0
         action = None
@@ -99,21 +104,30 @@ class Communication():
             # Wait answer
             self.prompt()
 
+            # Inform when exactly client must start speaking
+            rospy.loginfo(self.name + "Collecting audio...")
+
             if source is None:
-                # If no source provided, use available microphone
-                action, voice_data = self.record_from_microphone()
+                if dur is not None:
+                    # Record manually if dur provided
+                    self.record("temp.wav", dur=dur)
+                    action, voice_data = self.recognize_voice("temp.wav")
+                    os.remove("temp.wav")
+                else:
+                    # If no dur provided, record dynamical audio
+                    action, voice_data = self.recognize_voice()
             else:
                 # If source is provided, use it to get access to the mp3 file
                 raise NotImplementedError("Can't yet listen to audio files")
 
-            if action is Action.BASE.REPEAT:
+            if action is Action.BASE.REPEAT and num_prompts < max_prompts:
                 # Ask to repeat if the recognizer failed
                 self.say("Sorry, please repeat your answer.")
                 
-            if action is Action.BASE.REJECT:
+            if action is Action.BASE.REJECT and num_prompts < max_prompts:
                 # Ask to type it instead if recognizer service is down
                 self.say("Sorry, could you instead type your answer?")
-                voice_data = input("Type your answer:")
+                voice_data = input("Type your answer:\n")
                 break
         
         return voice_data
@@ -139,18 +153,18 @@ class Communication():
             return None
 
 
-    def record_from_microphone(self):
-        """Records voice data from a microphone.
+    def recognize_voice(self, path=None):
+        """Records voice data from a microphone or an audio file.
 
         Returns:
-            (tuple): A tuple consisting of a logic action and voice data
+            (tuple(Action, str)): A tuple consisting of action and voice data
         """
         # Initialize the recognizer
         recognizer = sr.Recognizer()
         
-        with sr.Microphone() as source:
-            # Record voice data from microphone
-            audio = recognizer.listen(source)
+        with sr.Microphone() if path is None else sr.AudioFile(path) as source:
+            # Record voice data from microphone or audio
+            audio = recognizer.listen(source, timeout=7)
             
             try:
                 # Convert audio to text data using a recognizer
@@ -158,15 +172,18 @@ class Communication():
             except sr.UnknownValueError:
                 # Could not process the audio
                 return Action.BASE.REPEAT, ""
+            except sr.WaitTimeoutError:
+                # Timeout was reached, reject
+                return Action.BASE.REJECT, ""
             except sr.RequestError:
                 # Speech service doesn't work
                 return Action.BASE.REJECT, ""
-
+        
         return Action.BASE.ACCEPT, voice_data
         
 
 
 if __name__ == "__main__":
     communication = Communication()
-    _, data = communication.record_from_microphone()
+    data = communication.listen(dur=5)
     print(data)

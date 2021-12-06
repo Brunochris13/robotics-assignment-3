@@ -3,13 +3,13 @@ import time
 import rospy
 
 from time import time
-from navigation.provide_goal_pose import MAX_TIME, pub_goal_pose
 from actionlib_msgs.msg import GoalStatus, GoalStatusArray
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Twist
 from move_base_msgs.msg import MoveBaseAction
 from actionlib import SimpleActionClient
-from utils.geom import make_pose_cov, make_pose, is_near
+from utils.geom import make_pose_cov, make_pose, PI_2
 
+MAX_TIME = 60.0
 
 class Moving():
     MAX_TIME_FOR_NAVIGATION = 60.0  # Seconds
@@ -18,10 +18,10 @@ class Moving():
     VEL_PUB_DURATION_LINEAR = 0.5  # Seconds
     VEL_PUB_DURATION_ANGULAR = 2.0  # Seconds
 
-    def __init__(self):
-        self.mname = "[ROBOTCORE] "
+    def __init__(self, basename=""):
+        self.name = basename + "[MOVING] "
         self.initial_pose = make_pose_cov(0, -7)
-        self.current_pose = make_pose_cov(0, -7)
+        self.current_pose = make_pose(0, -7)
         self.status = None
         self.recovery_counter = 0
 
@@ -82,7 +82,7 @@ class Moving():
         while duration < self.VEL_PUB_DURATION_LINEAR:
             pub_velocity.publish(twist)
             duration = time() - init_time
-        rospy.loginfo("Moved Linearly")
+
 
     def _move_ang(self, ang):
         """ Moves angularly
@@ -104,7 +104,6 @@ class Moving():
         while duration < self.VEL_PUB_DURATION_ANGULAR:
             pub_velocity.publish(twist)
             duration = time() - init_time
-        rospy.loginfo("Turned")
 
     def move_forward(self):
         self._move_lin(self.LINEAR_VEL)
@@ -124,7 +123,7 @@ class Moving():
         Args:
             pose (): goal pose
         """
-        rospy.loginfo("Recovery Started")
+        rospy.loginfo(self.name + "Recovery Started")
         self.recovery_counter += 1
         self.cancel_path()
 
@@ -133,24 +132,20 @@ class Moving():
         self.move_forward()
         self.turn_left()
 
-        rospy.loginfo("Recovery Ended")
-        rospy.loginfo("Trying again")
-        # pub_goal_pose(x, y, theta)
+        rospy.loginfo(self.name + "Recovery Ended")
         self.goto_pose(pose)
 
     def goto_pose(self, pose):
 
         def clear_costmaps():
-            rospy.loginfo("Clearing Costmaps")
             os.system('rosservice call /move_base/clear_costmaps \"{}\"')
             rospy.sleep(0.5)
-            # self.goal_publisher.publish(pose)
 
         if self.recovery_counter > 2:
-            rospy.logerr(self.mname + "Could not get to location")
+            rospy.logerr(self.name + "Could not get to location")
             return
 
-        print(self.mname + "Departure - publishing to NavStack")
+        rospy.loginfo(self.name + "Departure - publishing to NavStack")
         clear_costmaps()
         self.goal_publisher.publish(pose)
         rospy.sleep(2)
@@ -161,15 +156,12 @@ class Moving():
         time_passed = 0
         while order_status != GoalStatus.SUCCEEDED:
 
-            # d, r, b = is_near(self.current_pose, pose, radius=1.5)
-            # print(d, r)
-
             if order_status == GoalStatus.ABORTED:
-                print(self.mname + "Unreachable location. Retrying.")
+                rospy.loginfo(self.name + "Unreachable location. Retrying.")
                 clear_costmaps()
                 self.recovery(pose)
             elif order_status != GoalStatus.ACTIVE:
-                print(f"Order status: {order_status}")
+                rospy.loginfo(f"{self.name}Order status: {order_status}")
 
             counter += 1
 
@@ -184,15 +176,4 @@ class Moving():
             if time_passed > MAX_TIME:
                 self.recovery(pose)
 
-            # if b:
-            #     # If near target position, publish self pose so it's automatically successful
-            #     # self.goal_publisher.publish(self.current_pose)
-            #     self.cancel_path()
-
-        print(self.mname + "Arrival")
-
-    def move_to(self, target_pos):
-        pub_goal_pose(target_pos.position.x, target_pos.position.y, 0)
-
-    def turn_to(self, target_pos):
-        pass
+        rospy.loginfo(self.name + "Arrival")

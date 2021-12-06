@@ -1,27 +1,21 @@
 import rospy
 from enum import Enum, auto
-
-from restaurant.order import OrderStatus
+from environment.inventory import OrderStatus
 from .actions import Action
-from restaurant.restaurant import Restaurant
-from .parts.communication import Communication
-from .parts.vision import Vision
 from .parts.moving import Moving
+from .parts.vision import Vision
+from .parts.communication import Communication
 from .states.wander import Wander
 from .states.begin_order import BeginOrder
 from .states.bring_food import BringFood
 from .states.end_order import EndOrder
 
 
-class Status(Enum):
-    AVAILABLE = auto()
-    BUSY = auto()
-
-
 class Robot():
-    def __init__(self, restaurant):
-        # Assign the restaurant object
+    def __init__(self, restaurant, name="[ROBOT] "):
+        # Assign restaurant and name
         self.restaurant = restaurant
+        self.name = name
 
         # Init order list
         self.orders = [] 
@@ -30,20 +24,17 @@ class Robot():
         # Init the robot state
         self.state = Wander()
 
-        # Init the robot parts
-        self.moving = Moving()
-        self.vision = Vision()
-        self.communication = Communication()
+        # Init parts that make up robot
+        self.moving = Moving(self.name)
+        self.vision = Vision(self.name)
+        self.communication = Communication(self.name)
 
         # Init waiter node and the pose
-        rospy.init_node("waiter_robot")
         self.moving.init_pose()
 
 
     def update(self):
-
         self.state.update(self)
-        self.restaurant.update(self.orders)
 
     
     def change_state(self, action):
@@ -56,7 +47,7 @@ class Robot():
         elif action is Action.FLOW.END_ORDER:
             self.state = EndOrder()
         
-        rospy.loginfo(f"Changed state to {action}")
+        rospy.loginfo(f"{self.name}Changed state to {action}")
     
 
     def end_order(self, order_id=None, success=True):
@@ -75,8 +66,12 @@ class Robot():
         else:
             order.status = OrderStatus.CANCELED
         
+        self.restaurant.set_table_occupancy(order.table.id, False)
         self.restaurant.order_history.append(order)
         self.orders.remove(order)
+
+        rospy.loginfo(f"{self.name}Ended order {order.id}. Remaining: {self.orders}")
+        rospy.loginfo(f"{self.name}Freed table {order.table.id}.")
 
 
     def get_order_by_id(self, order_id=None):
@@ -93,21 +88,4 @@ class Robot():
         
         order_ids = [order.id for order in self.orders]
         return self.orders[order_ids.index(order_id)]
-
-
-    """
-    def cont(self, callback, criteria, params1=[], params2=[]):
-        if self.status == Status.BUSY:
-            # Check if is has finished
-            if not criteria(*params2):
-                # If ended, go to the next task
-                self.status = Status.AVAILABLE
-                return True
-        else:
-            # Otherwise start the task
-            self.status = Status.BUSY
-            callback(*params1)
-        
-        return False
-    """
 
