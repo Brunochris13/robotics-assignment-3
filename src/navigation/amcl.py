@@ -74,10 +74,10 @@ class Amcl():
 
         # Publishers
         self.amcl_pose_publisher = rospy.Publisher(
-            "/amcl_pose", PoseWithCovarianceStamped)
+            "/amcl_pose", PoseWithCovarianceStamped, queue_size=10)
         self.particle_cloud_publisher = rospy.Publisher(
-            "/particlecloud", PoseArray)
-        self.tf_publisher = rospy.Publisher("/tf", tfMessage)
+            "/particlecloud", PoseArray, queue_size=10)
+        self.tf_publisher = rospy.Publisher("/tf", tfMessage, queue_size=10)
 
         # Get Map
         rospy.loginfo("Waiting for a map...")
@@ -682,21 +682,21 @@ class Amcl():
         y_hat = np.random.normal(pose.position.y, self.ODOM_DRIFT_NOISE)
         theta_hat = np.random.normal(scale=self.ODOM_ROTATION_NOISE)
 
-        # Map parameters
-        width = self.occupancy_map.info.width
-        height = self.occupancy_map.info.height
-        origin = self.occupancy_map.info.origin.position
-        resolution = self.occupancy_map.info.resolution
+        # # Map parameters
+        # width = self.occupancy_map.info.width
+        # height = self.occupancy_map.info.height
+        # origin = self.occupancy_map.info.origin.position
+        # resolution = self.occupancy_map.info.resolution
 
-        # Check if pose is in the map
-        map_x = int((x_hat - origin.x) / resolution)
-        map_y = int((y_hat - origin.y) / resolution)
-        while self.occupancy_map.data[map_y * width + map_x] == -1:
-            map_y = np.random.randint(height)
-            map_x = np.random.randint(width)
+        # # Check if pose is in the map
+        # map_x = int((x_hat - origin.x) / resolution)
+        # map_y = int((y_hat - origin.y) / resolution)
+        # while self.occupancy_map.data[map_y * width + map_x] == -1:
+        #     map_y = np.random.randint(height)
+        #     map_x = np.random.randint(width)
 
-        x_hat = map_x * resolution + origin.x
-        y_hat = map_y * resolution + origin.y
+        # x_hat = map_x * resolution + origin.x
+        # y_hat = map_y * resolution + origin.y
 
         # Assign noisy pose estimates
         pose_hat.position.x = x_hat
