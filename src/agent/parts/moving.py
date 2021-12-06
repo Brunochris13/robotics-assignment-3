@@ -9,10 +9,8 @@ from move_base_msgs.msg import MoveBaseAction
 from actionlib import SimpleActionClient
 from utils.geom import make_pose_cov, make_pose, PI_2
 
-MAX_TIME = 30.0
-
 class Moving():
-    MAX_TIME_FOR_NAVIGATION = 60.0  # Seconds
+    MAX_TIME_FOR_NAVIGATION = 30.0  # Seconds
     LINEAR_VEL = 0.5
     ANGULAR_VEL = 2.0
     VEL_PUB_DURATION_LINEAR = 0.5  # Seconds
@@ -173,7 +171,7 @@ class Moving():
             order_status = self.get_status()
 
             time_passed = time() - init_time
-            if time_passed > MAX_TIME:
+            if time_passed > self.MAX_TIME_FOR_NAVIGATION:
                 self.recovery(pose)
 
         rospy.loginfo(self.name + "Arrival")
