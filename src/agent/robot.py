@@ -22,7 +22,7 @@ class Robot():
         self.active_order = None
         
         # Init the robot state
-        self.state = Wander()
+        self.state = BeginOrder()
 
         # Init parts that make up robot
         self.moving = Moving(self.name)
