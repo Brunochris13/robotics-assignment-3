@@ -105,8 +105,7 @@ class BeginOrder(State):
             self.substate = self.find_table(robot)
         elif self.substate is self._SubState.GOTO_TABLE:
             # If robot has not yet guided the people
-            # self.substate = self.goto_table(robot, robot.active_order.table)
-            self.substate = self.next(self.substate)
+            self.substate = self.goto_table(robot, robot.active_order.table)
         elif self.substate is self._SubState.TAKE_ORDER:
             # If robot has not yet accepted the order
             self.substate = self.take_order(robot)
@@ -128,14 +127,12 @@ class BeginOrder(State):
         robot.communication.say(random.choice(AVAILABLE_GREETINGS))
 
         # Get the available people
-        # people = robot.vision.see()
-        people = [(True, 32), (False, 29)]
+        people = robot.vision.see()
 
         # Begin the new order based on num people
         robot.orders.append(Order(people=people))
         robot.active_order = robot.orders[-1]
 
-        #
         rospy.loginfo(f"{robot.name}Started order with ID {robot.active_order.id}")
         
         return self.next(self.substate)
@@ -151,8 +148,6 @@ class BeginOrder(State):
         num_people = len(robot.active_order.people)
         available_tables = robot.restaurant.get_available_tables(num_people)
 
-        print("Available tables:", [t.id for t in available_tables])
-
         if len(available_tables) == 0:
             # Cancel the order if there are no tables available to use
             robot.communication.say("Sorry, no more tables. Bye bye.")
@@ -166,6 +161,7 @@ class BeginOrder(State):
 
             # Inform the restaurant to update the assigned table as occupied
             robot.restaurant.set_table_occupancy(robot.active_order.table.id)
+            robot.communication.say("Follow me")
 
             return self._SubState.GOTO_TABLE
 
@@ -200,6 +196,7 @@ class BeginOrder(State):
         
         # Inform the restaurant to update the assigned table as occupied
         robot.restaurant.set_table_occupancy(robot.active_order.table.id)
+        robot.communication.say("Follow me")
 
         return self.next(self.substate)
     
@@ -215,12 +212,12 @@ class BeginOrder(State):
         speech = '. '.join(speech)
 
         # Tell the menu to every customer and add options like "skip"/"pass"
-        # robot.communication.say(f"Let me now present you the menu. {speech}")
+        robot.communication.say(f"Let me now present you the menu. {speech}")
         options = list(robot.restaurant.get_menu().keys()) + ["skip"]
 
         for i in range(len(robot.active_order.people)):
             # Get the action to be performed after order execution
-            action = None#self._single_customer_order(i, robot, options)
+            action = self._single_customer_order(i, robot, options)
             
             if action is Action.BASE.REJECT:
                 # If order not succesful, cancel it

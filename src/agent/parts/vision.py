@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import random
 import re
-
+import rospy
 from numpy.core.fromnumeric import shape
 
 WEIGHTS_DIR = "resources/weights/"
@@ -165,7 +165,7 @@ class Vision():
             age_confidence_score = age_preds[0][i]
             label = f"{gender}-{gender_confidence_score*100:.1f}%, {age}-{age_confidence_score*100:.1f}%"
             ppl.append((gender,age))
-            print(label)
+            rospy.loginfo(self.name + label)
 
         return ppl
             # # Draw the box
@@ -213,7 +213,11 @@ class Vision():
         img = cv2.imread(IMAGE_DIR + img_name)
         self.display_img("Customer",img)
         ppl = self.predict_age_and_gender(img)
-        return self.formater(ppl)
+        ppl = self.formater(ppl)
+        ages = [person[1] for person in ppl]
+        rospy.loginfo(self.name + f"{ages}")
+
+        return ppl
 
 
 # class Vision():

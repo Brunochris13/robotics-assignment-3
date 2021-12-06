@@ -20,7 +20,7 @@ class Moving():
 
     def __init__(self, basename=""):
         self.name = basename + "[MOVING] "
-        self.initial_pose = make_pose_cov(0, -7, theta=PI_2)
+        self.initial_pose = make_pose_cov(0, -7)
         self.current_pose = make_pose(0, -7)
         self.status = None
         self.recovery_counter = 0
