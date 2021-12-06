@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-from agent.actions import Action
+from ..actions import Action
 from .abstract_state import State
 
 class EndOrder(State):

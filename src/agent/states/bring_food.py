@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from .abstract_state import State
 from ..actions import Action
-from restaurant.order import OrderStatus
+from environment.inventory import OrderStatus
 
 class BringFood(State):
     class _SubState(Enum):
@@ -28,7 +28,7 @@ class BringFood(State):
             robot (Robot): The robot which serves food to people
         """
         # Inform people about the brought food, change order status and state
-        robot.communication.say("Enjoy your meal. You have 4 seconds to eat.")
+        robot.communication.say("Enjoy your meal. You have 5 seconds to eat.")
         robot.active_order.status = OrderStatus.WAITING_FOOD
         robot.change_state(Action.FLOW.WANDER)
 

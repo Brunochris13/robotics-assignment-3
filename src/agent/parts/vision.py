@@ -7,11 +7,12 @@ import re
 
 from numpy.core.fromnumeric import shape
 
-WEIGHTS_DIR = "../../../resources/weights/"
-IMAGE_DIR = "../../../resources/img/"
+WEIGHTS_DIR = "resources/weights/"
+IMAGE_DIR = "resources/img/"
 
 class Vision():
-    def __init__(self):
+    def __init__(self, basename=""):
+        self.name = basename + "[VISION] "
         
         # print(os.path.isdir(WEIGHTS_DIR))
         # print(os.getcwd())
@@ -86,7 +87,7 @@ class Vision():
         # Display Image on screen
         cv2.imshow(title, img)
         # Mantain output until user presses a key
-        cv2.waitKey(1000)
+        cv2.waitKey(3000)
         # Destroy windows when user presses a key
         cv2.destroyAllWindows()
 

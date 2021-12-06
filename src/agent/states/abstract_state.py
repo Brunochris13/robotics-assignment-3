@@ -1,5 +1,7 @@
+import rospy
 from abc import ABC, abstractmethod
 from ..actions import Action
+from utils.geom import get_closest_pose
 
 
 class State(ABC):
@@ -106,3 +108,14 @@ class State(ABC):
         robot.moving.goto_pose(pose)
         
         return self.next(self.substate)
+
+
+    def goto_table(self, robot, table):
+
+        # Get robot pose and poses it can come
+        robot_pose = robot.moving.current_pose
+        table_poses = table.robot_poses
+
+        rospy.loginfo(f"{robot.moving.name}Approaching table {table.id}")
+
+        return self.goto_pose(robot, get_closest_pose(robot_pose, table_poses))

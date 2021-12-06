@@ -1,14 +1,13 @@
+import rospy
 import random
+from utils.geom import euclidean_distance_poses
 from enum import Enum, auto
 from .abstract_state import State
 from ..actions import Action
-from restaurant.order import Order, OrderStatus
-from .wander import Wander
+from environment.inventory import Order, OrderStatus
 
 
 class BeginOrder(State):
-    """Robot is busy all the time until the state is finished.
-    """
     class _SubState(Enum):
         GOTO_ENTRANCE = auto()
         MEET_PEOPLE = auto()
@@ -21,35 +20,19 @@ class BeginOrder(State):
         self.substate = self._SubState.GOTO_ENTRANCE
     
 
-    def _build_age_group_priority_queue(self, ages):
-        """Builds a list of priority age groups.
+    def _get_table_by_age(self, entrance, available_tables, ages):
+        need_closest = all(map(lambda x: x >= 65, ages))
+        table_poses = [table.pose for table in available_tables]
+
+        if need_closest:
+            x0, y0 = entrance.pose.position.x, entrance.pose.position.y
+            calc_dist = lambda x: euclidean_distance_poses(x0, y0, x.x, x.y)
+            distances = [calc_dist(table.pose.position) for table in table_poses]
+            table = available_tables[distances.index(min(distances))]
+        else:
+            table = random.choice(available_tables)
         
-        This method checks the given list of ages and constructs a list
-        of age ranges in such order where the first element is the most
-        likely range for the given ages.
-
-        Args:
-            ages (list(int)):
-        
-        Returns:
-            (list(range)):
-        """
-        pass
-
-
-    def _get_table_by_queue(self, available_tables, age_groups):
-        """Gets the first possible table based on prioritized age group.
-
-        Args:
-            available_tables (list(Table)):
-        
-        Returns:
-            (Table):
-        """
-        pass
-
-    def _get_table_by_age(self, available_tables, ages):
-        pass
+        return table, need_closest
 
 
     def _single_customer_order(self, i, robot, options):
@@ -122,7 +105,8 @@ class BeginOrder(State):
             self.substate = self.find_table(robot)
         elif self.substate is self._SubState.GOTO_TABLE:
             # If robot has not yet guided the people
-            self.substate = self.goto_pose(robot, robot.active_order.table.pose)
+            # self.substate = self.goto_table(robot, robot.active_order.table)
+            self.substate = self.next(self.substate)
         elif self.substate is self._SubState.TAKE_ORDER:
             # If robot has not yet accepted the order
             self.substate = self.take_order(robot)
@@ -144,12 +128,15 @@ class BeginOrder(State):
         robot.communication.say(random.choice(AVAILABLE_GREETINGS))
 
         # Get the available people
-        people = robot.vision.see()
+        # people = robot.vision.see()
         people = [(True, 32), (False, 29)]
 
         # Begin the new order based on num people
         robot.orders.append(Order(people=people))
         robot.active_order = robot.orders[-1]
+
+        #
+        rospy.loginfo(f"{robot.name}Started order with ID {robot.active_order.id}")
         
         return self.next(self.substate)
 
@@ -171,9 +158,13 @@ class BeginOrder(State):
             robot.end_order(success=False)
             return self._SubState.GOTO_ENTRANCE
 
-        if len(available_tables) == 1:
+        if True:#len(available_tables) == 1:
             # If there's only 1 available table, go to it
             robot.active_order.table = available_tables[0]
+
+            # Inform the restaurant to update the assigned table as occupied
+            robot.restaurant.set_table_occupancy(robot.active_order.table.id)
+
             return self._SubState.GOTO_TABLE
 
         # Ask for a table preference if there are >1
@@ -194,16 +185,18 @@ class BeginOrder(State):
                 # Cancel order if people play around
                 return self._SubState.GOTO_ENTRANCE
             
-            # If the table ID is valid, assign the appropriate table to order
+            # If the table ID is valid, assign the appropriate table to the order object
             robot.active_order.table = robot.restaurant.get_table_by_id(int(voice_data))
         else:
-            # Get the ages, find table priorities and assign a table
+            # Assign a random table or closest possible if it's senior
             ages = [person[1] for person in robot.active_order.people]
-            # queue = self._build_age_group_priority_queue(ages)
-            table = self._get_table_by_age(available_tables, ages)
+            table, closest = self._get_table_by_age(robot.restaurant.entrance, available_tables, ages)
             robot.active_order.table = table
+
+            what = "closest possible" if closest else "random"
+            rospy.loginfo(f"{robot.name}Occupied {what} table (ID: {table.id})")
         
-        # Inform restaurant to update table availability
+        # Inform the restaurant to update the assigned table as occupied
         robot.restaurant.set_table_occupancy(robot.active_order.table.id)
 
         return self.next(self.substate)
@@ -220,12 +213,12 @@ class BeginOrder(State):
         speech = '. '.join(speech)
 
         # Tell the menu to every customer and add options like "skip"/"pass"
-        robot.communication.say(f"Let me now present you the menu. {speech}")
-        options = list(robot.restaurant.get_menu().keys()) + ["i will pass", "skip"]
+        # robot.communication.say(f"Let me now present you the menu. {speech}")
+        options = list(robot.restaurant.get_menu().keys()) + ["skip"]
 
         for i in range(len(robot.active_order.people)):
             # Get the action to be performed after order execution
-            action = self._single_customer_order(i, robot, options)
+            action = None#self._single_customer_order(i, robot, options)
             
             if action is Action.BASE.REJECT:
                 # If order not succesful, cancel it
@@ -236,7 +229,7 @@ class BeginOrder(State):
         robot.active_order.status = OrderStatus.WAITING_FOOD
         robot.change_state(Action.FLOW.WANDER)
 
-        robot.restaurant.set_food_waiting(robot.active_order.id)
+        robot.restaurant.request_waiting(robot.active_order.id)
 
         return self._SubState.GOTO_ENTRANCE
             

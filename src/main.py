@@ -2,7 +2,8 @@
 
 import rospy
 from agent.robot import Robot
-from restaurant.restaurant import Restaurant
+from environment.restaurant import Restaurant
+
 
 def looper(callback, freq=1):
     interval = rospy.Rate(freq)
@@ -10,6 +11,7 @@ def looper(callback, freq=1):
     while not rospy.is_shutdown():
         callback()
         interval.sleep()
+
 
 if __name__ == "__main__":
     restaurant = Restaurant()

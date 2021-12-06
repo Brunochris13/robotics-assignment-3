@@ -1,6 +1,8 @@
 # request
-int64 ID
-int64 time
+int32 id
+bool is_food
+int32 time
 ---
 # response
-int64 ID
+int32 id
+bool is_food
