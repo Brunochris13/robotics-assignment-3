@@ -88,7 +88,7 @@ window
 floorplan
 ( 
   name "stage_restaurant"
-  bitmap "stage_restaurant.pgm"
+  bitmap "empty_map.pgm"
   size [10 16 3]
   pose [ 0 0 0 0 ]
 )
