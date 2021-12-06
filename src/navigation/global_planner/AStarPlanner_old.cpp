@@ -93,8 +93,6 @@ initializes the cost map and other parameters of the grid.
   bool AStarPlanner::makePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal,
                               std::vector<geometry_msgs::PoseStamped> &plan)
   {
-    ROS_INFO("makePlan called");
-
     if (!initialized_)
     {
       ROS_ERROR("The planner has not been initialized, please call initialize() to use the planner");
@@ -319,8 +317,6 @@ initializes the cost map and other parameters of the grid.
     multiset<GridSquare> openSquaresList;
     int currentGridSquare;
 
-    ROS_INFO("Here 1");
-
     //calculate g_score and f_score of the start position
     g_score[startGridSquare] = 0;
     gridSq.currentGridSquare = startGridSquare;
@@ -330,8 +326,6 @@ initializes the cost map and other parameters of the grid.
     //add the start gridSquare to the open list
     openSquaresList.insert(gridSq);
     currentGridSquare = startGridSquare;
-
-    ROS_INFO("Here 2");
 
     //while the open list is not empty and till goal square is reached continue the search
     // while (!openSquaresList.empty() && g_score[goalGridSquare] == infinity)
@@ -345,7 +339,6 @@ initializes the cost map and other parameters of the grid.
       vector<int> neighborGridSquares;
       neighborGridSquares = findFreeNeighborGridSquare(currentGridSquare);
 
-      ROS_INFO("Inside while loop");
       for (uint i = 0; i < neighborGridSquares.size(); i++) //for each neighbor v of gridSquare
       {
         // if the g_score of the neighbor is equal to INF: unvisited gridSquare
@@ -382,7 +375,6 @@ initializes the cost map and other parameters of the grid.
   // vector<int> AStarPlanner::constructPath(int startGridSquare, int goalGridSquare, float g_score[])
   vector<int> AStarPlanner::constructPath(int startGridSquare, int goalGridSquare, std::map<int, float> &g_score)
   {
-    ROS_INFO("Start of constructPath");
     vector<int> bestPath;
     vector<int> path;
 
@@ -400,7 +392,6 @@ initializes the cost map and other parameters of the grid.
         float score = g_score[neighborGridSquares[i]];
         if (std::find(visited.begin(), visited.end(), neighborGridSquares[i]) != visited.end())
         {
-          ROS_INFO("score = %f", score);
           gScoresNeighbors.push_back(score);
         }
       }
@@ -464,33 +455,10 @@ initializes the cost map and other parameters of the grid.
     bool isvalid = true;
     bool isFreeStartGridSquare = isFree(startGridSquare);
     bool isFreeGoalGridSquare = isFree(goalGridSquare);
-    if (startGridSquare == goalGridSquare)
+
+    if ((startGridSquare == goalGridSquare) || !isFreeStartGridSquare || !isFreeGoalGridSquare || (findFreeNeighborGridSquare(startGridSquare).size() == 0) || (findFreeNeighborGridSquare(goalGridSquare).size() == 0))
       isvalid = false;
-    else
-    {
-      if (!isFreeStartGridSquare && !isFreeGoalGridSquare)
-        isvalid = false;
-      else
-      {
-        if (!isFreeStartGridSquare)
-          isvalid = false;
-        else
-        {
-          if (!isFreeGoalGridSquare)
-            isvalid = false;
-          else
-          {
-            if (findFreeNeighborGridSquare(goalGridSquare).size() == 0)
-              isvalid = false;
-            else
-            {
-              if (findFreeNeighborGridSquare(startGridSquare).size() == 0)
-                isvalid = false;
-            }
-          }
-        }
-      }
-    }
+
     return isvalid;
   }
 
