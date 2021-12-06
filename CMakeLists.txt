@@ -165,11 +165,8 @@ add_library(${PROJECT_NAME}_lib src/navigation/global_planner/AStarPlanner_old.c
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  src/navigation/provide_goal_pose.py
   src/navigation/provide_initial_pose_estimate.py
   src/navigation/amcl.py
-  src/restaurant_node_server.py
-  src/navigation/restaurant_robot_client.py
   src/main.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
