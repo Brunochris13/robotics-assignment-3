@@ -128,7 +128,7 @@ include_directories(
 #   src/${PROJECT_NAME}/waiter_robot.cpp
 # )
 # add_library(${PROJECT_NAME}_lib src/navigation/global_planner/GlobalPlanner.cpp)
-# add_library(${PROJECT_NAME}_lib src/navigation/global_planner/AStarPlanner_old.cpp)
+add_library(${PROJECT_NAME}_lib src/navigation/global_planner/AStarPlanner_old.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
