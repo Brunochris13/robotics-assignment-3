@@ -9,7 +9,7 @@ from move_base_msgs.msg import MoveBaseAction
 from actionlib import SimpleActionClient
 from utils.geom import make_pose_cov, make_pose, PI_2
 
-MAX_TIME = 60.0
+MAX_TIME = 30.0
 
 class Moving():
     MAX_TIME_FOR_NAVIGATION = 60.0  # Seconds
