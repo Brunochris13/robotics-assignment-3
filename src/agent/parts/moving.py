@@ -17,10 +17,10 @@ class Moving():
     ANGULAR_VEL = 2.0
     VEL_PUB_DURATION_LINEAR = 0.5  # Seconds
     VEL_PUB_DURATION_ANGULAR = 2.0  # Seconds
-    MAX_RECENT = 40
-    LINEAR_THRESHOLD = 0.05
-    ANGULAR_THRESHOLD = 0.05
-    XY_TOL = 0.05
+    MAX_RECENT = 50
+    LINEAR_THRESHOLD = 0.01
+    ANGULAR_THRESHOLD = 0.01
+    XY_TOL = 0.01
 
     def __init__(self, basename=""):
         self.name = basename + "[MOVING] "
@@ -175,7 +175,7 @@ class Moving():
             for i in range(len(self.recent_velocities)):
                 linear_x = self.recent_velocities[i].linear.x
                 angular_z = self.recent_velocities[i].angular.z
-                if abs(linear_x) > self.LINEAR_THRESHOLD and \
+                if abs(linear_x) > self.LINEAR_THRESHOLD or \
                         abs(angular_z) > self.ANGULAR_THRESHOLD:
                     return False
 
