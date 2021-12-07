@@ -23,13 +23,9 @@ from multiprocessing import Process, Manager
 
 PI_OVER_TWO = math.pi/2
 
-global_lock = Lock()
-global_ws = []
 
 def multiproc(L, f, scan, pose_array):
-    print("called", len(pose_array))
-    ws_temp = [f(scan, pose) for pose in pose_array]
-    L += ws_temp
+    L += [f(scan, pose) for pose in pose_array]
 
 
 class Amcl():
@@ -43,17 +39,17 @@ class Amcl():
     INIT_HEADING = 0 	# Initial orientation of robot (radians)
 
     # Set motion model parameters
-    ODOM_ROTATION_NOISE = .1
-    ODOM_TRANSLATION_NOISE = .1
-    ODOM_DRIFT_NOISE = .1
+    ODOM_ROTATION_NOISE = .03
+    ODOM_TRANSLATION_NOISE = .05
+    ODOM_DRIFT_NOISE = .02
 
-    NUMBER_PREDICTED_READINGS = 100  # Number of Initial Samples
+    NUMBER_PREDICTED_READINGS = 150  # Number of Initial Samples
 
-    MAX_NUM_SKIP_UPDATES = 2  # Number of updates the cloud is not updated
+    MAX_NUM_SKIP_UPDATES = 3  # Number of updates the cloud is not updated
 
     KIDNAP_THRESHOLD = 100
 
-    MAX_PROCESSES = 3
+    MAX_PROCESSES = 4
 
     def __init__(self):
         # Minimum change (m/radians) before publishing new particle cloud and pose
@@ -178,17 +174,8 @@ class Amcl():
         the latest laser.
         """
         if not self.latest_scan == None:
-            start = time.time()
             self.predict_from_odometry(odometry)
-            end = time.time()
-
-            print(f"Prediction lasted: {end - start}")
-
-            start = time.time()
             self.update_filter(self.latest_scan)
-            end = time.time()
-
-            print(f"Update lasted: {end - start}")
 
     def update_filter(self, scan):
         """
@@ -222,10 +209,7 @@ class Amcl():
             # just concentrate on updating actual particle and pose locations
             self.particlecloud.header.stamp = currentTime
             self.estimated_pose.header.stamp = currentTime
-
-
-    def service(self, pose):
-        return self.sensor_model.get_weight(self.prev_scan, pose)
+            
 
     def update_particle_cloud(self, scan):
         """
@@ -237,8 +221,8 @@ class Amcl():
         """
         # If the sensor data is the same, don't update particle cloud
         if self.prev_scan is not None:
-            if self._rel_error(scan.ranges, self.prev_scan.ranges) < 1e-9:
-                return
+           if self._rel_error(scan.ranges, self.prev_scan.ranges) < 1e-9:
+               return
 
         # Store previous scan measurements
         self.prev_scan = scan
@@ -257,8 +241,7 @@ class Amcl():
             pose_arrays = np.array_split(self.particlecloud.poses, len(self.particlecloud.poses))
         else:
             pose_arrays = np.array_split(self.particlecloud.poses, self.MAX_PROCESSES)
-        
-        start = time.time()
+
         
         with Manager() as manager:
             L = manager.list()
@@ -273,8 +256,6 @@ class Amcl():
                 p.join()
 
             ws = list(L)
-
-        
 
         # def get_ws():
         #     ws = []
@@ -298,11 +279,6 @@ class Amcl():
         # Generate importance weights based on scan readings
         # ws = self.sensor_model.get_weights(scan, self.particlecloud.poses)
         # ws = [self.sensor_model.get_weight(scan, pose) for pose in self.particlecloud.poses]
-        
-        
-        end = time.time()
-        print(f"Weight calc lasted: {end - start}")
-        
 
         # Update last weight evaluations with the most recent evaluation
         self.ws_last_eval = [self.WS_LAST_FUNC(ws)] + self.ws_last_eval[:-1]
@@ -310,12 +286,9 @@ class Amcl():
         # Weights should sum up to 1
         ws /= np.sum(ws)
 
-        start = time.time()
         # Resample AMCL algorithm
         self.particlecloud = self.resample_amcl(self.particlecloud, ws)
-        end = time.time()
-        print(f"Resampling lasted: {end - start}")
-    
+
 
     def _generate_random_poses(self, num_poses=None):
         """Generates random poses uniformly across the map.

@@ -31,6 +31,7 @@
         <rosparam file="$(find waiter_robot)/config/base_local_planner_params.yaml" command="load" />
         <param name="base_global_planner" value="navfn/NavfnROS" />
         <!-- <param name="base_global_planner" value="astar_plugin/AStarPlanner" /> -->
+        <!-- <param name="base_global_planner" value="a_better_star/AStarPlanner" /> -->
         <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
     </node>
 
