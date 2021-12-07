@@ -237,25 +237,25 @@ class Amcl():
             self.num_last_updates = 0
 
 
-        if len(self.particlecloud.poses) < self.MAX_PROCESSES:
-            pose_arrays = np.array_split(self.particlecloud.poses, len(self.particlecloud.poses))
-        else:
-            pose_arrays = np.array_split(self.particlecloud.poses, self.MAX_PROCESSES)
+        # if len(self.particlecloud.poses) < self.MAX_PROCESSES:
+        #     pose_arrays = np.array_split(self.particlecloud.poses, len(self.particlecloud.poses))
+        # else:
+        #     pose_arrays = np.array_split(self.particlecloud.poses, self.MAX_PROCESSES)
 
         
-        with Manager() as manager:
-            L = manager.list()
-            ps = []
+        # with Manager() as manager:
+        #     L = manager.list()
+        #     ps = []
 
-            for pose_array in pose_arrays:
-                p = Process(target=multiproc, args=(L, self.sensor_model.get_weight, scan, pose_array))
-                p.start()
-                ps.append(p)
+        #     for pose_array in pose_arrays:
+        #         p = Process(target=multiproc, args=(L, self.sensor_model.get_weight, scan, pose_array))
+        #         p.start()
+        #         ps.append(p)
 
-            for p in ps:
-                p.join()
+        #     for p in ps:
+        #         p.join()
 
-            ws = list(L)
+        #     ws = list(L)
 
         # def get_ws():
         #     ws = []
@@ -278,7 +278,7 @@ class Amcl():
         
         # Generate importance weights based on scan readings
         # ws = self.sensor_model.get_weights(scan, self.particlecloud.poses)
-        # ws = [self.sensor_model.get_weight(scan, pose) for pose in self.particlecloud.poses]
+        ws = [self.sensor_model.get_weight(scan, pose) for pose in self.particlecloud.poses]
 
         # Update last weight evaluations with the most recent evaluation
         self.ws_last_eval = [self.WS_LAST_FUNC(ws)] + self.ws_last_eval[:-1]
