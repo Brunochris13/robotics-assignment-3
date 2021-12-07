@@ -1,7 +1,6 @@
 <launch>
   <param name="use_sim_time" value="true"/>
   <!-- Arguments -->
-  <!-- <arg name="map_file" default="$(find waiter_robot)/maps/stage_restaurant.yaml"/> -->
   <arg name="map_file" default="$(find waiter_robot)/maps/stage_restaurant_small.yaml"/>
   <arg name="open_rviz" default="true"/>
 
@@ -14,14 +13,6 @@
   <!-- <node pkg="amcl" name="amcl" type="amcl" args="scan:=base_scan"/> -->
   <node pkg="waiter_robot" name="amcl" type="amcl.py" args="scan:=base_scan" output="screen"/>
 
- <!-- Robot node -->
-<!-- <node pkg="waiter_robot" name="restaurant_robot" type="restaurant_robot.py"/> -->
- <!-- Restaurant node -->
-<!-- <node pkg="waiter_robot" name="restaurant" type="restaurant_node.py" output="screen"/> -->
-
-  <!-- Provide Initial Pose Estimate -->
-  <!-- <node pkg="waiter_robot" name="provide_initial_pose_estimate" type="provide_initial_pose_estimate.py"/> -->
-
   <!-- move_base -->
     <node name="move_base" pkg="move_base" type="move_base" respawn="false" output="screen">
         <rosparam file="$(find waiter_robot)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
@@ -30,8 +21,6 @@
         <rosparam file="$(find waiter_robot)/config/global_costmap_params.yaml" command="load" />
         <rosparam file="$(find waiter_robot)/config/base_local_planner_params.yaml" command="load" />
         <param name="base_global_planner" value="navfn/NavfnROS" />
-        <!-- <param name="base_global_planner" value="astar_plugin/AStarPlanner" /> -->
-        <!-- <param name="base_global_planner" value="a_better_star/AStarPlanner" /> -->
         <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
     </node>
 

@@ -1,20 +1,28 @@
 import os
 import time
 import rospy
+import numpy as np
 
 from time import time
 from actionlib_msgs.msg import GoalStatus, GoalStatusArray
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Twist
+from nav_msgs.msg import Odometry
 from move_base_msgs.msg import MoveBaseAction
 from actionlib import SimpleActionClient
-from utils.geom import make_pose_cov, make_pose, PI_2
+from utils.geom import euclidean_distance_poses, make_pose_cov, make_pose, getHeading
+
 
 class Moving():
-    MAX_TIME_FOR_NAVIGATION = 30.0  # Seconds
+    """ This class is used for the movement of the robot
+    """
     LINEAR_VEL = 0.5
     ANGULAR_VEL = 2.0
     VEL_PUB_DURATION_LINEAR = 0.5  # Seconds
     VEL_PUB_DURATION_ANGULAR = 2.0  # Seconds
+    MAX_RECENT = 50
+    LINEAR_THRESHOLD = 0.01
+    ANGULAR_THRESHOLD = 0.01
+    XY_TOL = 0.01
 
     def __init__(self, basename=""):
         self.name = basename + "[MOVING] "
@@ -22,6 +30,8 @@ class Moving():
         self.current_pose = make_pose(0, -7)
         self.status = None
         self.recovery_counter = 0
+        self.recent_velocities = []
+        self.recent_poses = []
 
         self.pose_publisher = rospy.Publisher(
             "/initialpose", PoseWithCovarianceStamped, queue_size=10)
@@ -31,26 +41,66 @@ class Moving():
             "/move_base/status", GoalStatusArray, self.status_callback, queue_size=1)
         self.amcl_subscriber = rospy.Subscriber(
             "/amcl_pose", PoseWithCovarianceStamped, self.robot_pose_callback, queue_size=10)
+        self.vel_subscriber = rospy.Subscriber(
+            "/cmd_vel", Twist, self.vel_callback, queue_size=10)
+
+        # For testing only
+        self.test_amcl_params = True
+        if self.test_amcl_params:
+            self.ground_pose = make_pose(0, 0)
+            self.xy_acc_poses = []
+            self.yaw_acc_poses = []
+            self.ground_truth_subscriber = rospy.Subscriber(
+                "/base_pose_ground_truth", Odometry, self.ground_pose_callback, queue_size=10)
 
         rospy.sleep(5)
 
-
     def init_pose(self):
+        """ Publishes to the /initialpose topic the robot's default initial pose,
+         near the entrance
+        """
         # Set the initial pose of the robot
         self.pose_publisher.publish(self.initial_pose)
 
+    def ground_pose_callback(self, pose):
+        """ Updates the ground_pose, it is only used for Experiments
+        """
+        self.ground_pose = make_pose(
+            pose.pose.pose.position.x, pose.pose.pose.position.y, getHeading(pose.pose.pose.orientation))
+
     def status_callback(self, status):
+        """ Get the status from the /move_base/status topic
+        """
         self.status = status
 
     def robot_pose_callback(self, pose):
+        """ Update the current_pose of the robot, as well as store the MAX_RECENT number of recent
+         poses of the robot
+        Args:
+            pose(PoseWithCovarianceStamped): the current pose of the robot, from the /amcl_pose topic
+        """
         self.current_pose = make_pose(
             pose.pose.pose.position.x, pose.pose.pose.position.y)
+        self.recent_poses.append(self.current_pose)
+        if len(self.recent_poses) > self.MAX_RECENT:
+            self.recent_poses.pop(0)
 
     def get_status(self):
+        """ Return the current robot's status of its navigation
+        """
         if self.status != None and len(self.status.status_list) > 0:
             return int(self.status.status_list[-1].status)
 
         return GoalStatus.ABORTED
+
+    def vel_callback(self, twist):
+        """ Store the MAX_RECENT number of recent velocities of the robot
+        Args:
+            twist(Twist): the twist of the /cmd_vel topic
+        """
+        self.recent_velocities.append(twist)
+        if len(self.recent_velocities) > self.MAX_RECENT:
+            self.recent_velocities.pop(0)
 
     def cancel_path(self):
         """ Cancels the current path
@@ -80,7 +130,6 @@ class Moving():
         while duration < self.VEL_PUB_DURATION_LINEAR:
             pub_velocity.publish(twist)
             duration = time() - init_time
-
 
     def _move_ang(self, ang):
         """ Moves angularly
@@ -133,7 +182,73 @@ class Moving():
         rospy.loginfo(self.name + "Recovery Ended")
         self.goto_pose(pose)
 
+    def _are_recent_vel_low(self):
+        """ Checks if the recent_velocities are all low values
+         (below LINEAR_THRESHOLD and ANGULAR_THRESHOLD)
+        Returns:
+            True: if the velocities are really low
+            False: if the velocities are not really low
+        """
+        if len(self.recent_velocities) == 0:
+            return False
+        elif len(self.recent_velocities) == self.MAX_RECENT:
+            for i in range(len(self.recent_velocities)):
+                linear_x = self.recent_velocities[i].linear.x
+                angular_z = self.recent_velocities[i].angular.z
+                if abs(linear_x) > self.LINEAR_THRESHOLD or \
+                        abs(angular_z) > self.ANGULAR_THRESHOLD:
+                    return False
+
+        return True
+
+    def _are_we_in_place(self):
+        """ Checks if the robot has not moved, based on its recent_poses
+        Returns:
+            True: if the robot has not moved
+            False: if the robot has moved even slightly
+        """
+        if len(self.recent_poses) == 0:
+            return False
+        elif len(self.recent_poses) == self.MAX_RECENT:
+            x_0 = self.recent_poses[0].pose.position.x
+            y_0 = self.recent_poses[0].pose.position.y
+            for i in range(1, len(self.recent_poses)):
+                x = self.recent_poses[i].pose.position.x
+                y = self.recent_poses[i].pose.position.y
+                dist = euclidean_distance_poses(x_0, y_0, x, y)
+                if dist > self.XY_TOL:
+                    return False
+
+        return True
+
+    def _compare_poses(self, pose1, pose2):
+        """ Compares 2 poses and returns a positional and angular difference
+        Args:
+            pose1(PoseStamped): pose 1
+            pose2(PoseStamped): pose 2
+        Returns:
+            eucl_dist(float): the euclidean distance between pose 1 and 2
+            yaw_diff(float): the orientation difference between pose 1 and 2
+        """
+        x1 = pose1.pose.position.x
+        y1 = pose1.pose.position.y
+        x2 = pose2.pose.position.x
+        y2 = pose2.pose.position.y
+
+        eucl_dist = euclidean_distance_poses(x1, y1, x2, y2)
+
+        yaw1 = getHeading(pose1.pose.orientation)
+        yaw2 = getHeading(pose2.pose.orientation)
+
+        yaw_diff = abs(yaw1-yaw2)
+
+        return eucl_dist, yaw_diff
+
     def goto_pose(self, pose):
+        """ Goes to the provided pose
+        Args:
+            pose(PoseStamped): goal pose
+        """
 
         def clear_costmaps():
             os.system('rosservice call /move_base/clear_costmaps \"{}\"')
@@ -150,9 +265,13 @@ class Moving():
         order_status = self.get_status()
 
         counter = 0
-        init_time = time()
-        time_passed = 0
+        self.recent_velocities = []
         while order_status != GoalStatus.SUCCEEDED:
+
+            if self.test_amcl_params:
+                xy_acc, yaw_acc = self._compare_poses(pose, self.ground_pose)
+                self.xy_acc_poses.append(xy_acc)
+                self.yaw_acc_poses.append(yaw_acc)
 
             if order_status == GoalStatus.ABORTED:
                 rospy.loginfo(self.name + "Unreachable location. Retrying.")
@@ -170,8 +289,20 @@ class Moving():
             rospy.sleep(0.2)
             order_status = self.get_status()
 
-            time_passed = time() - init_time
-            if time_passed > self.MAX_TIME_FOR_NAVIGATION:
+            if len(self.recent_velocities) >= self.MAX_RECENT and\
+                    self._are_recent_vel_low() and \
+                    self._are_we_in_place():
                 self.recovery(pose)
 
         rospy.loginfo(self.name + "Arrival")
+
+        if self.test_amcl_params:
+            sum_xy_acc = np.mean(self.xy_acc_poses)
+            sum_yaw_acc = np.mean(self.yaw_acc_poses)
+
+            total_error = sum_xy_acc * sum_yaw_acc
+
+            self.xy_acc_poses = []
+            self.yaw_acc_poses = []
+
+            return total_error
