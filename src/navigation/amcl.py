@@ -39,17 +39,17 @@ class Amcl():
     INIT_HEADING = 0 	# Initial orientation of robot (radians)
 
     # Set motion model parameters
-    ODOM_ROTATION_NOISE = .03
-    ODOM_TRANSLATION_NOISE = .05
-    ODOM_DRIFT_NOISE = .02
+    ODOM_ROTATION_NOISE = .1
+    ODOM_TRANSLATION_NOISE = .1
+    ODOM_DRIFT_NOISE = .1
+
 
     NUMBER_PREDICTED_READINGS = 150  # Number of Initial Samples
     MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
-
     KIDNAP_THRESHOLD = 100
 
-    MAX_PROCESSES = 4
+    MAX_PROCESSES = 1
 
     def __init__(self):
         # Minimum change (m/radians) before publishing new particle cloud and pose
@@ -765,20 +765,6 @@ class Amcl():
 
 
 if __name__ == '__main__':
-    # try:
-    #     rospy.init_node("amcl", log_level=rospy.FATAL)
-    #     amcl = Amcl()
-    #     #rospy.spin()
-    #     interval = rospy.Rate(100)
-
-    #     while not rospy.is_shutdown():
-    #         # amcl.publish()
-    #         interval.sleep()
-                
-    # except rospy.ROSInterruptException:
-    #     pass
-
-    
     try:
         rospy.init_node("amcl")
         Amcl()
