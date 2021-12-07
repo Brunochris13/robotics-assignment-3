@@ -205,7 +205,19 @@ class Vision():
 
         return ppl
 
+    def see_demo(self):
+        file_list = os.listdir(IMAGE_DIR)
+        img_name = "3ppl_with_3generation.webp"
+        img = cv2.imread(IMAGE_DIR + img_name)
+        self.display_img("Customer",img)
+        ppl = self.predict_age_and_gender(img)
+        ppl = self.formater(ppl)
+        ages = [person[1] for person in ppl]
+        rospy.loginfo(self.name + f"{ages}")
+
+        return ppl
+
 if __name__ == '__main__':
     
     v = Vision()
-    v.see()
+    v.see_demo()
