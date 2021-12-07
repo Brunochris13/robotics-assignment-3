@@ -1,7 +1,7 @@
 import rospy
 from time import time
 from moving import *
-from utils.geom import PI, PI_2, make_pose, make_pose_cov, getHeading, euclidean_distance_poses
+from utils.geom import PI, PI_2, make_pose, getHeading, euclidean_distance_poses
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 
@@ -9,6 +9,10 @@ from nav_msgs.msg import Odometry
 class Test():
 
     def __init__(self):
+        # Change this to True if you want error over time, for Noise Parameters and
+        # Max/Min samples testing.
+        # Do not forget to turn it on in moving.py as well
+        self.test_amcl_params = True
         self.amcl_pose = make_pose(0, 0)
         self.ground_pose = make_pose(0, 0)
 
@@ -32,15 +36,20 @@ class Test():
             print(f"Navigation to ({x}, {y}):")
 
             init_time = time()
-            mov.goto_pose(pose)
+            if self.test_amcl_params:
+                total_error = mov.goto_pose(pose)
+            else:
+                mov.goto_pose(pose)
             duration = time() - init_time
 
-            #xy_amcl_acc, yaw_amcl_acc = self.compare_poses(pose, self.amcl_pose)
             xy_acc, yaw_acc = self.compare_poses(pose, self.ground_pose)
 
             print(f"Duration: {duration}")
-            print(f"Accuracy XY: {xy_acc}")
-            print(f"Accuracy Yaw: {yaw_acc}")
+            if self.test_amcl_params:
+                print(f"Error Over Time: {total_error/duration}")
+            else:
+                print(f"Accuracy XY: {xy_acc}")
+                print(f"Accuracy Yaw: {yaw_acc}")
             print()
 
     def compare_poses(self, pose1, pose2):

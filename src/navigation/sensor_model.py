@@ -6,6 +6,7 @@ import rospy
 from utils.geom import getHeading
 
 import math
+import time
 
 from . import laser_trace
 
@@ -112,6 +113,10 @@ class SensorModel(object):
         p = 1.0 # Sample weight (not a probability!)
         
         
+        head_time = 0
+        map_time = 0
+        predict_time = 0
+        cube_time = 0
 
         
         for i, obs_bearing in self.reading_points:
@@ -121,14 +126,53 @@ class SensorModel(object):
             # ----- Laser reports max range as zero, so set it to range_max
             if (obs_range <= 0.0):
                 obs_range = self.scan_range_max 
-            
+
+            start = time.time()
+            head = getHeading(pose.orientation)
+            head_time += time.time() - start
+
             # ----- Compute the range according to the map
+            start = time.time()
             map_range = self.calc_map_range(pose.position.x, pose.position.y,
-                                     getHeading(pose.orientation) + obs_bearing)
+                                     head + obs_bearing)
+            map_time += time.time() - start
+
+            start = time.time()
             pz = self.predict(obs_range, map_range)
-            p += pz*pz*pz # Cube probability: reduce low-probability particles 
+            predict_time += time.time() - start
+
+            start = time.time()
+            p += pz*pz*pz # Cube probability: reduce low-probability particles
+            cube_time += time.time() - start
             
-        return p
+        return p#, head_time, map_time, predict_time, head_time
+
+    def get_weights(self, scan, poses):
+
+        ps = []
+        print("len read pts", len(self.reading_points))
+        
+        for i, obs_bearing in self.reading_points:
+            # ----- For each range...
+            obs_range = scan.ranges[i]
+            
+            # ----- Laser reports max range as zero, so set it to range_max
+            if (obs_range <= 0.0):
+                obs_range = self.scan_range_max
+
+            p=1
+
+            for pose in poses:
+            
+                # ----- Compute the range according to the map
+                map_range = self.calc_map_range(pose.position.x, pose.position.y,
+                                        getHeading(pose.orientation) + obs_bearing)
+                pz = self.predict(obs_range, map_range)
+                p += pz*pz*pz # Cube probability: reduce low-probability particles
+                ps.append(p)
+            
+        return ps
+
     
     def predict(self, obs_range, map_range):
         """

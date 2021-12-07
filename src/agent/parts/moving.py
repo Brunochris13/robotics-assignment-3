@@ -1,13 +1,15 @@
 import os
 import time
 import rospy
+import numpy as np
 
 from time import time
 from actionlib_msgs.msg import GoalStatus, GoalStatusArray
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Twist
+from nav_msgs.msg import Odometry
 from move_base_msgs.msg import MoveBaseAction
 from actionlib import SimpleActionClient
-from utils.geom import euclidean_distance_poses, make_pose_cov, make_pose
+from utils.geom import euclidean_distance_poses, make_pose_cov, make_pose, getHeading
 
 
 class Moving():
@@ -42,6 +44,15 @@ class Moving():
         self.vel_subscriber = rospy.Subscriber(
             "/cmd_vel", Twist, self.vel_callback, queue_size=10)
 
+        # For testing only
+        self.test_amcl_params = True
+        if self.test_amcl_params:
+            self.ground_pose = make_pose(0, 0)
+            self.xy_acc_poses = []
+            self.yaw_acc_poses = []
+            self.ground_truth_subscriber = rospy.Subscriber(
+                "/base_pose_ground_truth", Odometry, self.ground_pose_callback, queue_size=10)
+
         rospy.sleep(5)
 
     def init_pose(self):
@@ -50,6 +61,12 @@ class Moving():
         """
         # Set the initial pose of the robot
         self.pose_publisher.publish(self.initial_pose)
+
+    def ground_pose_callback(self, pose):
+        """ Updates the ground_pose, it is only used for Experiments
+        """
+        self.ground_pose = make_pose(
+            pose.pose.pose.position.x, pose.pose.pose.position.y, getHeading(pose.pose.pose.orientation))
 
     def status_callback(self, status):
         """ Get the status from the /move_base/status topic
@@ -168,6 +185,9 @@ class Moving():
     def _are_recent_vel_low(self):
         """ Checks if the recent_velocities are all low values
          (below LINEAR_THRESHOLD and ANGULAR_THRESHOLD)
+        Returns:
+            True: if the velocities are really low
+            False: if the velocities are not really low
         """
         if len(self.recent_velocities) == 0:
             return False
@@ -183,6 +203,9 @@ class Moving():
 
     def _are_we_in_place(self):
         """ Checks if the robot has not moved, based on its recent_poses
+        Returns:
+            True: if the robot has not moved
+            False: if the robot has moved even slightly
         """
         if len(self.recent_poses) == 0:
             return False
@@ -197,6 +220,29 @@ class Moving():
                     return False
 
         return True
+
+    def _compare_poses(self, pose1, pose2):
+        """ Compares 2 poses and returns a positional and angular difference
+        Args:
+            pose1(PoseStamped): pose 1
+            pose2(PoseStamped): pose 2
+        Returns:
+            eucl_dist(float): the euclidean distance between pose 1 and 2
+            yaw_diff(float): the orientation difference between pose 1 and 2
+        """
+        x1 = pose1.pose.position.x
+        y1 = pose1.pose.position.y
+        x2 = pose2.pose.position.x
+        y2 = pose2.pose.position.y
+
+        eucl_dist = euclidean_distance_poses(x1, y1, x2, y2)
+
+        yaw1 = getHeading(pose1.pose.orientation)
+        yaw2 = getHeading(pose2.pose.orientation)
+
+        yaw_diff = abs(yaw1-yaw2)
+
+        return eucl_dist, yaw_diff
 
     def goto_pose(self, pose):
         """ Goes to the provided pose
@@ -222,6 +268,11 @@ class Moving():
         self.recent_velocities = []
         while order_status != GoalStatus.SUCCEEDED:
 
+            if self.test_amcl_params:
+                xy_acc, yaw_acc = self._compare_poses(pose, self.ground_pose)
+                self.xy_acc_poses.append(xy_acc)
+                self.yaw_acc_poses.append(yaw_acc)
+
             if order_status == GoalStatus.ABORTED:
                 rospy.loginfo(self.name + "Unreachable location. Retrying.")
                 clear_costmaps()
@@ -244,3 +295,14 @@ class Moving():
                 self.recovery(pose)
 
         rospy.loginfo(self.name + "Arrival")
+
+        if self.test_amcl_params:
+            sum_xy_acc = np.mean(self.xy_acc_poses)
+            sum_yaw_acc = np.mean(self.yaw_acc_poses)
+
+            total_error = sum_xy_acc * sum_yaw_acc
+
+            self.xy_acc_poses = []
+            self.yaw_acc_poses = []
+
+            return total_error
