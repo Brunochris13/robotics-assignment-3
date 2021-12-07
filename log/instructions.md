@@ -20,7 +20,7 @@ The above command will redirect all output to a new file called `test_name.log`.
 You can then open this file and copy the values to the report.
 
 
-## For the Noise Parameters and Max/Min num. of particles experiments
+## For the Noise Parameters, Max/Min number of particles and KLD Error experiments
 
 First in `test_navigation.py` and in `moving.py` turn `self.test_amcl_params` to **True** in BOTH files.
 
