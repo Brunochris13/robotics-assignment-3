@@ -2,8 +2,7 @@ import numpy as np
 from utils.geom import getHeading
 
 class Histogram():
-    """
-    Histogram inner class used for managing bins.
+    """Histogram class used for managing bins.
 
     There are 3 types of bins: in x axis, in y axis and in theta
     axis. The bins can be thought of as cells for a volume where

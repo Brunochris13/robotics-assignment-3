@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import rospy
 import math
 import random
+import time
 import numpy as np
 from geometry_msgs.msg import (Pose, Transform, PoseWithCovarianceStamped,
                                PoseArray, Quaternion, TransformStamped)
@@ -12,12 +14,22 @@ from tf import transformations
 from nav_msgs.msg import OccupancyGrid, Odometry
 from sensor_msgs.msg import LaserScan
 from copy import deepcopy
-from threading import Lock
+from threading import Lock, Thread
 from navigation import sensor_model 
 from utils.geom import getHeading, rotateQuaternion
 from navigation.histogram import Histogram
 
+from multiprocessing import Process, Manager
+
 PI_OVER_TWO = math.pi/2
+
+global_lock = Lock()
+global_ws = []
+
+def multiproc(L, f, scan, pose_array):
+    print("called", len(pose_array))
+    ws_temp = [f(scan, pose) for pose in pose_array]
+    L += ws_temp
 
 
 class Amcl():
@@ -35,11 +47,13 @@ class Amcl():
     ODOM_TRANSLATION_NOISE = .1
     ODOM_DRIFT_NOISE = .1
 
-    NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
+    NUMBER_PREDICTED_READINGS = 100  # Number of Initial Samples
 
     MAX_NUM_SKIP_UPDATES = 2  # Number of updates the cloud is not updated
 
     KIDNAP_THRESHOLD = 100
+
+    MAX_PROCESSES = 3
 
     def __init__(self):
         # Minimum change (m/radians) before publishing new particle cloud and pose
@@ -118,6 +132,8 @@ class Amcl():
         self.odometry_subscriber = rospy.Subscriber("/odom", Odometry,
                                                     self.odometry_callback,
                                                     queue_size=1)
+        
+        self.counter = 0
 
     def laser_callback(self, scan):
         """
@@ -125,9 +141,12 @@ class Amcl():
         much, republish the latest pose to update RViz
         """
         self.latest_scan = scan
-        #rate = rospy.Rate(20) # 10hz
+
         #if self._sufficientMovementDetected(self.estimated_pose):
-        #while not rospy.is_shutdown():
+        self.publish()
+        
+    
+    def publish(self):
         # Publish the new pose
         self.amcl_pose_publisher.publish(
             self.estimated_pose)
@@ -142,8 +161,7 @@ class Amcl():
 
         # Get updated transform and publish it
         self.tf_publisher.publish(self.tf_message)
-
-        #rate.sleep()
+        
 
     def initial_pose_callback(self, initialpose):
         """ called when RViz sends a user supplied initial pose estimate """
@@ -160,8 +178,17 @@ class Amcl():
         the latest laser.
         """
         if not self.latest_scan == None:
+            start = time.time()
             self.predict_from_odometry(odometry)
+            end = time.time()
+
+            print(f"Prediction lasted: {end - start}")
+
+            start = time.time()
             self.update_filter(self.latest_scan)
+            end = time.time()
+
+            print(f"Update lasted: {end - start}")
 
     def update_filter(self, scan):
         """
@@ -196,6 +223,10 @@ class Amcl():
             self.particlecloud.header.stamp = currentTime
             self.estimated_pose.header.stamp = currentTime
 
+
+    def service(self, pose):
+        return self.sensor_model.get_weight(self.prev_scan, pose)
+
     def update_particle_cloud(self, scan):
         """
         This should use the supplied laser scan to update the current
@@ -221,9 +252,57 @@ class Amcl():
         else:
             self.num_last_updates = 0
 
+
+        if len(self.particlecloud.poses) < self.MAX_PROCESSES:
+            pose_arrays = np.array_split(self.particlecloud.poses, len(self.particlecloud.poses))
+        else:
+            pose_arrays = np.array_split(self.particlecloud.poses, self.MAX_PROCESSES)
+        
+        start = time.time()
+        
+        with Manager() as manager:
+            L = manager.list()
+            ps = []
+
+            for pose_array in pose_arrays:
+                p = Process(target=multiproc, args=(L, self.sensor_model.get_weight, scan, pose_array))
+                p.start()
+                ps.append(p)
+
+            for p in ps:
+                p.join()
+
+            ws = list(L)
+
+        
+
+        # def get_ws():
+        #     ws = []
+        #     head_time = 0
+        #     map_time = 0
+        #     predict_time = 0
+        #     cube_time = 0
+
+        #     for pose in self.particlecloud.poses:
+        #         w, h, m, p, c = self.sensor_model.get_weight(scan, pose)
+        #         head_time += h
+        #         map_time += m
+        #         predict_time += p
+        #         cube_time += c
+        #         ws.append(w)
+            
+        #     print("h", head_time, "\nm", map_time, "\np", predict_time, "\nc", cube_time)
+
+        #     return ws
+        
         # Generate importance weights based on scan readings
-        ws = [self.sensor_model.get_weight(scan, pose)
-              for pose in self.particlecloud.poses]
+        # ws = self.sensor_model.get_weights(scan, self.particlecloud.poses)
+        # ws = [self.sensor_model.get_weight(scan, pose) for pose in self.particlecloud.poses]
+        
+        
+        end = time.time()
+        print(f"Weight calc lasted: {end - start}")
+        
 
         # Update last weight evaluations with the most recent evaluation
         self.ws_last_eval = [self.WS_LAST_FUNC(ws)] + self.ws_last_eval[:-1]
@@ -231,8 +310,12 @@ class Amcl():
         # Weights should sum up to 1
         ws /= np.sum(ws)
 
+        start = time.time()
         # Resample AMCL algorithm
         self.particlecloud = self.resample_amcl(self.particlecloud, ws)
+        end = time.time()
+        print(f"Resampling lasted: {end - start}")
+    
 
     def _generate_random_poses(self, num_poses=None):
         """Generates random poses uniformly across the map.
@@ -380,7 +463,7 @@ class Amcl():
 
         # While not min or KLD calculated samples reached
         while len(poses_resampled.poses) < Mx or \
-                len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
+              len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
             # Sample random pose, add it to resampled list
             pose = np.random.choice(poses.poses, p=ws)
             pose = self._get_noisy_pose(pose)
@@ -394,8 +477,8 @@ class Amcl():
                 # Update KL distance
                 if k > 1:
                     Mx = ((k - 1) / (2 * eps)) * \
-                        math.pow(1 - (2 / (9 * (k - 1))) +
-                                 math.sqrt(2 / (9 * (k - 1))) * z, 3)
+                         math.pow(1 - (2 / (9 * (k - 1))) +
+                         math.sqrt(2 / (9 * (k - 1))) * z, 3)
 
                 # Don't exceed the maximum allowed range
                 Mx = MAX_NUM_PARTICLES if Mx > MAX_NUM_PARTICLES else Mx
@@ -707,9 +790,24 @@ class Amcl():
 
 
 if __name__ == '__main__':
+    # try:
+    #     rospy.init_node("amcl", log_level=rospy.FATAL)
+    #     amcl = Amcl()
+    #     #rospy.spin()
+    #     interval = rospy.Rate(100)
+
+    #     while not rospy.is_shutdown():
+    #         # amcl.publish()
+    #         interval.sleep()
+                
+    # except rospy.ROSInterruptException:
+    #     pass
+
+    
     try:
         rospy.init_node("amcl")
         Amcl()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
+    
