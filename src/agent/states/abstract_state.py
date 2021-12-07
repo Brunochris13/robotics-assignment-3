@@ -103,6 +103,9 @@ class State(ABC):
         Args:
             robot (Robot): The robot whose position to update
             pose (PoseStamped): The position to move the robot to
+        
+        Returns:
+            (self._SubState): The next substate the robot to transit to
         """
         # Move robot to given pose
         robot.moving.goto_pose(pose)
@@ -111,11 +114,20 @@ class State(ABC):
 
 
     def goto_table(self, robot, table):
+        """Moves robot to assigned table.
 
+        Args:
+            robot (Robot): The robot to move to the table
+            table (Table): The table the robot to move to
+        
+        Returns:
+            (self._SubState): The next substate the robot to transit to
+        """
         # Get robot pose and poses it can come
         robot_pose = robot.moving.current_pose
         table_poses = table.robot_poses
 
+        # Print out the table ID to which the robot will be approaching
         rospy.loginfo(f"{robot.moving.name}Approaching table {table.id}")
 
         return self.goto_pose(robot, get_closest_pose(robot_pose, table_poses))
