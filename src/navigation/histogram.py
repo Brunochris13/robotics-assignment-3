@@ -10,7 +10,7 @@ class Histogram():
     particles belong to based on their parameters being within a
     specific interval.
     """
-    def __init__(self, width, height, origin, num_bins=(400, 400, 1)):
+    def __init__(self, width, height, origin, num_bins=(40, 40, 1)):
         """Initializes the histogram object.
 
         Args:
