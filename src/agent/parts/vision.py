@@ -53,6 +53,7 @@ class Vision():
 
 
     def get_faces(self, frame, confidence_threshold=0.5):
+        """Get faces coordinates"""
         # convert the frame into a blob to be ready for NN input
         blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), (104, 177.0, 123.0))
         # set the image as input to the NN
@@ -93,6 +94,7 @@ class Vision():
 
 
     def image_resize(self, image, width = None, height = None, inter = cv2.INTER_AREA):
+        "Resize the image"
         # initialize the dimensions of the image to be resized and
         # grab the image size
         dim = None
@@ -118,6 +120,7 @@ class Vision():
 
 
     def get_gender_predictions(self, face_img):
+        """Get a gender prediction"""
         blob = cv2.dnn.blobFromImage(
             image=face_img, scalefactor=1.0, size=(227, 227),
             mean=self.MODEL_MEAN_VALUES, swapRB=False, crop=False
@@ -127,6 +130,7 @@ class Vision():
 
 
     def get_age_predictions(self, face_img):
+        """Get a age prediction"""
         blob = cv2.dnn.blobFromImage(
             image=face_img, scalefactor=1.0, size=(227, 227),
             mean=self.MODEL_MEAN_VALUES, swapRB=False
@@ -168,28 +172,10 @@ class Vision():
             rospy.loginfo(self.name + label)
 
         return ppl
-            # # Draw the box
-            # label = f"{gender}-{gender_confidence_score*100:.1f}%, {age}-{age_confidence_score*100:.1f}%"
-            # # label = "{}-{:.2f}%".format(gender, gender_confidence_score*100)
-            # print(label)
-            # yPos = start_y - 15
-            # while yPos < 15:
-            #     yPos += 15
-            # box_color = (255, 0, 0) if gender == "Male" else (147, 20, 255)
-            # cv2.rectangle(frame, (start_x, start_y), (end_x, end_y), box_color, 2)
-            # # Label processed image
-            # font_scale = 0.54
-            # cv2.putText(frame, label, (start_x, yPos),
-            #             cv2.FONT_HERSHEY_SIMPLEX, font_scale, box_color, 2)
 
-        # # Display processed image
-        # self.display_img("Gender Estimator", frame)
-        # # uncomment if you want to save the image
-        # cv2.imwrite("output.jpg", frame)
-        # # Cleanup
-        # cv2.destroyAllWindows()
 
     def formater(self, ppl):
+        """Change the format of data"""
         people = []
         for person in ppl:
             gender, age = person
@@ -202,7 +188,7 @@ class Vision():
 
 
     def see(self):
-        """Gets the list of genders and ages representing each person.
+        """Pick a random image get the list of genders and ages representing each person.
 
         Returns:
             (list(tuple(bool, int))): 
@@ -219,27 +205,6 @@ class Vision():
 
         return ppl
 
-
-# class Vision():
-#     def __init__(self):
-#         self.scanner = AgeGenderDetector()
-#         self.dir_path = "src/interaction/face/images"
-
-#     def scan(self):
-#         image = v.getImage
-#         ppl = self.scanner.get_age_predictions(image)
-#         return ppl
-
-#     def getImage(self):
-#         image = random.choice(os.listdir(self.dir_path))
-
-
-# if __name__ == "__main__":
-#     v = Vision()
-#     v.scanner.display_img("test", v.getImage)
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     
     v = Vision()
