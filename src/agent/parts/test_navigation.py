@@ -12,7 +12,7 @@ class Test():
         # Change this to True if you want error over time, for Noise Parameters and
         # Max/Min samples testing.
         # Do not forget to turn it on in moving.py as well
-        self.test_amcl_params = True
+        self.test_amcl_params = False
         self.amcl_pose = make_pose(0, 0)
         self.ground_pose = make_pose(0, 0)
 
