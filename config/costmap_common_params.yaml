@@ -7,7 +7,7 @@ transform_tolerance: 10.0
 
 footprint: [[0.2, 0.2], [0.2, -0.2], [-0.2, -0.2], [-0.2, 0.2]]
 
-robot_radius: 0.225 
+robot_radius: 0.001 #0.225 
 inflation_radius: 0.15
 cost_scaling_factor: 0.2
 

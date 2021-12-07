@@ -37,7 +37,7 @@ class Amcl():
 
     NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
 
-    MAX_NUM_SKIP_UPDATES = 2  # Number of updates the cloud is not updated
+    MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
     KIDNAP_THRESHOLD = 100
 
@@ -370,7 +370,7 @@ class Amcl():
         poses_resampled = PoseArray()
 
         # KLD sampling initialization
-        MAX_NUM_PARTICLES = 500
+        MAX_NUM_PARTICLES = 5000
         eps = 0.08
         z = 0.99
         Mx = 0
@@ -379,8 +379,8 @@ class Amcl():
         self.histogram.non_empty_bins.clear()
 
         # While not min or KLD calculated samples reached
-        while len(poses_resampled.poses) < Mx or \
-                len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
+        while len(poses_resampled.poses) < Mx \
+                or len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
             # Sample random pose, add it to resampled list
             pose = np.random.choice(poses.poses, p=ws)
             pose = self._get_noisy_pose(pose)
