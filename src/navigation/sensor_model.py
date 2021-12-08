@@ -9,6 +9,7 @@ import math
 import time
 
 from . import laser_trace
+from .occupancy_field import OccupancyField
 
 PI_OVER_TWO = math.pi/2 
 
@@ -24,6 +25,7 @@ class SensorModel(object):
         
         self.sigma_hit = 0.2 		# Noise on hit
         self.lambda_short = 0.1 	# Noise on short reading
+        self.sigma = 0.08
         
         # Initialise scan parameters to nothing
         self.set_laser_scan_parameters(0, 0, 0, 0, 0)
@@ -71,6 +73,7 @@ class SensorModel(object):
                              (self.map_width / 2.0) * self.map_resolution )
         self.map_origin_y = ( occupancy_map.info.origin.position.y +
                               (self.map_height / 2.0) * self.map_resolution )
+        self.occupancy_field = OccupancyField(occupancy_map)
         rospy.loginfo("Sensor model map set.")
 
     def calc_map_range(self, ox, oy, oa):
@@ -133,9 +136,11 @@ class SensorModel(object):
 
             # ----- Compute the range according to the map
             start = time.time()
-            map_range = self.calc_map_range(pose.position.x, pose.position.y,
-                                     head + obs_bearing)
+            map_range = self.calc_map_range(pose.position.x, pose.position.y, head + obs_bearing)
+            # map_range = self.occupancy_field.get_closest_obstacle_distance(*self.transform_scan(pose, obs_range, obs_bearing))
             map_time += time.time() - start
+
+            # p += math.exp((-map_range**2)/(2*self.sigma**2))
 
             start = time.time()
             pz = self.predict(obs_range, map_range)
@@ -147,31 +152,76 @@ class SensorModel(object):
             
         return p#, head_time, map_time, predict_time, head_time
 
+    
+
+    def get_weight_new(self, scan, pose):
+        tot_prob = 0
+
+        #for i, obs_bearing in self.reading_points:
+        for i, obs_range in scan.ranges:
+            # obs_range = scan.ranges[i]
+            x, y = self.transform_scan(pose, obs_range, i)
+            d = self.occupancy_field.get_closest_obstacle_distance(x, y)
+            tot_prob += math.exp((-d**2)/(2*self.sigma_hit**2))
+        
+
+        for i, obs_bearing in self.reading_points:
+            x, y = self.transform_scan(pose, obs_bearing, i)
+            d = self.occupancy_field.get_closest_obstacle_distance(x, y)
+
+
+        return tot_prob/len(scan.ranges)
+    
+    
+    
+    
     def get_weights(self, scan, poses):
 
         ps = []
-        print("len read pts", len(self.reading_points))
+        # print("len read pts", len(self.reading_points))
+
         
-        for i, obs_bearing in self.reading_points:
-            # ----- For each range...
-            obs_range = scan.ranges[i]
-            
-            # ----- Laser reports max range as zero, so set it to range_max
-            if (obs_range <= 0.0):
-                obs_range = self.scan_range_max
 
-            p=1
+        for pose in poses:
+            tot_prob = 0
 
-            for pose in poses:
-            
-                # ----- Compute the range according to the map
-                map_range = self.calc_map_range(pose.position.x, pose.position.y,
-                                        getHeading(pose.orientation) + obs_bearing)
-                pz = self.predict(obs_range, map_range)
-                p += pz*pz*pz # Cube probability: reduce low-probability particles
-                ps.append(p)
+            #for i, obs_bearing in self.reading_points:
+            for i, obs_range in scan.ranges:
+                # ----- For each range...
+                # obs_range = scan.ranges[i]
+                x, y = self.transform_scan(pose, obs_range, i)
+                d = self.occupancy_field.get_closest_obstacle_distance(x, y)
+                tot_prob += math.exp((-d**2)/(2*self.sigma**2))
+
+                # obs_range = scan.ranges[i]
+                
+                # # ----- Laser reports max range as zero, so set it to range_max
+                # if (obs_range <= 0.0):
+                #     obs_range = self.scan_range_max
+
+                # p=1
+
+                # for pose in poses:
+                
+                #     # ----- Compute the range according to the map
+                #     map_range = self.calc_map_range(pose.position.x, pose.position.y,
+                #                             getHeading(pose.orientation) + obs_bearing)
+                #     pz = self.predict(obs_range, map_range)
+                #     p += pz*pz*pz # Cube probability: reduce low-probability particles
+                #     ps.append(p)
+            tot_prob = tot_prob/len(scan.ranges)
+            ps.append(tot_prob)
             
         return ps
+
+    def transform_scan(self, pose, distance, theta):
+        """ Calculates the x and y of a scan from a given particle
+        particle: Particle object
+        distance: scan distance (from ranges)
+        theta: scan angle (range index)
+        """
+        return (pose.position.x + distance * math.cos(math.radians(getHeading(pose.orientation) + theta)),
+                pose.position.y + distance * math.sin(math.radians(getHeading(pose.orientation) + theta)))
 
     
     def predict(self, obs_range, map_range):

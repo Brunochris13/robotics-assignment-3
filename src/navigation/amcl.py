@@ -25,7 +25,8 @@ PI_OVER_TWO = math.pi/2
 
 
 def multiproc(L, f, scan, pose_array):
-    L += [f(scan, pose) for pose in pose_array]
+    for pose in pose_array:
+        L.append((pose, f(scan, pose)))
 
 
 class Amcl():
@@ -39,17 +40,26 @@ class Amcl():
     INIT_HEADING = 0 	# Initial orientation of robot (radians)
 
     # Set motion model parameters
-    ODOM_ROTATION_NOISE = .1
-    ODOM_TRANSLATION_NOISE = .1
-    ODOM_DRIFT_NOISE = .1
+    ODOM_ROTATION_NOISE = .05
+    ODOM_TRANSLATION_NOISE = .05
+    ODOM_DRIFT_NOISE = .05
 
+    MOTION_ROTATION_NOISE = .1
+    MOTION_TRANSLATION_NOISE = .05
+    MOTION_DRIFT_NOISE = .05
+
+    NUMBER_PREDICTED_READINGS = 60  # Number of Initial Samples
+    NUM_PARTICLES = 200
+    RAN_PARTICLES = 20
+
+    NUMBER_PREDICTED_READINGS_OLD = NUMBER_PREDICTED_READINGS
 
     NUMBER_PREDICTED_READINGS = 300 # 150  # Number of Initial Samples
     MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
     KIDNAP_THRESHOLD = 100
 
-    MAX_PROCESSES = 1
+    MAX_PROCESSES = 4
 
     def __init__(self):
         # Minimum change (m/radians) before publishing new particle cloud and pose
@@ -70,6 +80,8 @@ class Amcl():
         self.num_last_updates = 0
         self.ws_last_eval = [-1] * 10
         self.clustered = True
+        self.starttime_after_reclustered = time.time()
+        self.time_after_reclustered = 0
 
         # Set 'previous' translation to origin
         # All Transforms are given relative to 0,0,0, not in absolute coords.
@@ -242,7 +254,8 @@ class Amcl():
         else:
             pose_arrays = np.array_split(self.particlecloud.poses, self.MAX_PROCESSES)
 
-        
+        ws = []
+
         with Manager() as manager:
             L = manager.list()
             ps = []
@@ -255,7 +268,10 @@ class Amcl():
             for p in ps:
                 p.join()
 
-            ws = list(L)
+            ws = [l[1] for l in L]
+            self.particlecloud.poses = [l[0] for l in L]
+        
+        # print("Weights sum up to", sum(ws))
 
         # def get_ws():
         #     ws = []
@@ -288,6 +304,7 @@ class Amcl():
 
         # Resample AMCL algorithm
         self.particlecloud = self.resample_amcl(self.particlecloud, ws)
+        self.particlecloud.poses[-self.RAN_PARTICLES:] = self._generate_random_poses(self.RAN_PARTICLES).poses
 
 
     def _generate_random_poses(self, num_poses=None):
@@ -304,7 +321,7 @@ class Amcl():
         """
         # Set default value
         if num_poses is None:
-            num_poses = self.NUMBER_PREDICTED_READINGS
+            num_poses = self.NUM_PARTICLES
         
         # Initialize random particle array
         poses_uniform = PoseArray()
@@ -344,30 +361,40 @@ class Amcl():
         Return:
             (geometry_msgs.msg.PoseArray): resampled particle poses
         """
-        SPREAD_THRESHOLD = 150
+        SPREAD_THRESHOLD = 230
 
-        if not self.clustered:
-            poses = self._resample_mcl_base(poses, ws)
+        #if not self.clustered:
+        #    poses = self._resample_mcl_base(poses, ws)
 
         poses = self.resample_amcl_base(poses, ws)
 
         # Keep track of robot's certainty of the pose
         rospy.loginfo(f"Certainty: {np.mean(self.ws_last_eval):.4f} | " +
-                      f"Threshold: {self.KIDNAP_THRESHOLD}")
+                      f"Threshold: {self.KIDNAP_THRESHOLD} | " +
+                      f"Clustered: {self.clustered} | "
+                      f"Time after reclustered {time.time() - self.starttime_after_reclustered}")
 
         # If weights are low, dissolve particles
-        #if len(poses.poses) > SPREAD_THRESHOLD and \
-        if -1 not in self.ws_last_eval and self.clustered and \
+        # if len(poses.poses) > SPREAD_THRESHOLD and \
+        if time.time() - self.starttime_after_reclustered > 10 and \
+           -1 not in self.ws_last_eval and self.clustered and \
            np.mean(self.ws_last_eval) <= self.KIDNAP_THRESHOLD:
             # Reinitialize the trailing of weight eval values
             self.ws_last_eval = list(map(lambda _: -1, self.ws_last_eval))
-            poses = self._generate_random_poses(len(poses.poses))
+
+            self.NUMBER_PREDICTED_READINGS_OLD = self.NUMBER_PREDICTED_READINGS
+            self.NUMBER_PREDICTED_READINGS = 30
+            self.sensor_model_initialised = False
+            poses = self._generate_random_poses(1000)
             self.clustered = False
 
             return poses
 
         if len(poses.poses) <= SPREAD_THRESHOLD:
+            self.NUMBER_PREDICTED_READINGS = self.NUMBER_PREDICTED_READINGS_OLD
+            self.sensor_model_initialised = False
             self.clustered = True
+            self.starttime_after_reclustered = time.time()
 
         return poses
 
@@ -426,7 +453,7 @@ class Amcl():
         poses_resampled = PoseArray()
 
         # KLD sampling initialization
-        MAX_NUM_PARTICLES = 5000
+        MAX_NUM_PARTICLES = 1000
         eps = 0.08
         z = 0.99
         Mx = 0
@@ -437,8 +464,7 @@ class Amcl():
         # While not min or KLD calculated samples reached
 
         while len(poses_resampled.poses) < Mx or \
-              len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
-
+              len(poses_resampled.poses) < self.NUM_PARTICLES:
             # Sample random pose, add it to resampled list
             pose = np.random.choice(poses.poses, p=ws)
             pose = self._get_noisy_pose(pose)
@@ -491,7 +517,7 @@ class Amcl():
         pxs, pys, oxs, oys, ozs, ows = [], [], [], [], [], []
 
         # Generate lists for each pose estimate
-        for pose in self.particlecloud.poses:
+        for pose in self.particlecloud.poses[:-self.RAN_PARTICLES]:
             pxs.append(pose.position.x)
             pys.append(pose.position.y)
             oxs.append(pose.orientation.x)
@@ -520,7 +546,7 @@ class Amcl():
         """
         # Num best particles to keep
         if num_keep is None:
-            num_keep = self.NUMBER_PREDICTED_READINGS // 2
+            num_keep = self.NUM_PARTICLES // 2
 
         # Sorted indeces of `estimates - mean`
         ind = np.argsort(np.abs(estimates - np.mean(estimates)))
@@ -715,7 +741,7 @@ class Amcl():
         initial_poses = PoseArray()
 
         # Generate a list of noisy particles
-        for _ in range(self.NUMBER_PREDICTED_READINGS):
+        for _ in range(self.NUM_PARTICLES):
             initial_poses.poses.append(self._get_noisy_pose(pose0))
 
         return initial_poses
@@ -736,9 +762,9 @@ class Amcl():
         pose_hat = Pose()
 
         # Samples from Gaussian with variance based on sampling noise
-        x_hat = np.random.normal(pose.position.x, self.ODOM_TRANSLATION_NOISE)
-        y_hat = np.random.normal(pose.position.y, self.ODOM_DRIFT_NOISE)
-        theta_hat = np.random.normal(scale=self.ODOM_ROTATION_NOISE)
+        x_hat = np.random.normal(pose.position.x, self.MOTION_TRANSLATION_NOISE)
+        y_hat = np.random.normal(pose.position.y, self.MOTION_DRIFT_NOISE)
+        theta_hat = np.random.normal(scale=self.MOTION_ROTATION_NOISE)
 
         # # Map parameters
         width = self.occupancy_map.info.width
@@ -747,11 +773,15 @@ class Amcl():
         resolution = self.occupancy_map.info.resolution
 
         # Check if pose is in the map
-        map_x = int((x_hat - origin.x) / resolution)
-        map_y = int((y_hat - origin.y) / resolution)
-        while self.occupancy_map.data[map_y * width + map_x] == -1:
-            map_y = np.random.randint(height)
-            map_x = np.random.randint(width)
+        map_x = int((x_hat - origin.x) / resolution) # int(x_hat / resolution - origin.x)
+        map_y = int((y_hat - origin.y) / resolution) # int(y_hat / resolution - origin.y)
+
+        try:
+            while self.occupancy_map.data[map_y * width + map_x] == -1:
+                map_y = np.random.randint(height)
+                map_x = np.random.randint(width)
+        except IndexError:
+            pass
 
         x_hat = map_x * resolution + origin.x
         y_hat = map_y * resolution + origin.y

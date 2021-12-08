@@ -11,13 +11,16 @@ def read_file(fname, keyword="Error Over Time:"):
                 results.append(float(parts[-1]))
     return results
 
+# Change these values
 error_over_time_0 = np.mean(read_file("test_amcl_params_0.log"))
 error_over_time_1 = np.mean(read_file("test_amcl_params_1.log"))
 error_over_time_2 = np.mean(read_file("test_amcl_params_2.log"))
 error_over_time_3 = np.mean(read_file("test_amcl_params_3.log"))
 
 # Graph
-x = [0.1, 0.2, 0.3, 0.4]
+
+# Change x and y depending on the experiment
+x = [0.1, 0.2, 0.3, 0.4] # Here x values are the Noise parameters
 y = [error_over_time_0, error_over_time_1, error_over_time_2, error_over_time_3]
 
 fig, ax = plt.subplots()

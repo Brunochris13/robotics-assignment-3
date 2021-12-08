@@ -12,6 +12,7 @@ IMAGE_DIR = "resources/img/"
 
 class Vision():
     def __init__(self, basename=""):
+        self.first_order = True
         self.name = basename + "[VISION] "
         
         # print(os.path.isdir(WEIGHTS_DIR))
@@ -195,7 +196,12 @@ class Vision():
         """
         
         file_list = os.listdir(IMAGE_DIR)
-        img_name = random.choice(file_list)
+        # img_name = random.choice(file_list)
+        if self.first_order:
+            img_name = "male-family-members-the-male-members-of-the-family-representing-the-three-generations-stock-image_csp19032269.webp"
+            self.first_order = False
+        else:
+            img_name = "man2.jpg"
         img = cv2.imread(IMAGE_DIR + img_name)
         self.display_img("Customer",img)
         ppl = self.predict_age_and_gender(img)
