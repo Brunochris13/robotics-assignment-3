@@ -48,8 +48,11 @@ class Amcl():
     MOTION_TRANSLATION_NOISE = .05
     MOTION_DRIFT_NOISE = .05
 
-    NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
-    NUM_PARTICLES = 150
+    NUMBER_PREDICTED_READINGS = 60  # Number of Initial Samples
+    NUM_PARTICLES = 200
+    RAN_PARTICLES = 20
+
+    NUMBER_PREDICTED_READINGS_OLD = NUMBER_PREDICTED_READINGS
 
     MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
@@ -76,6 +79,8 @@ class Amcl():
         self.num_last_updates = 0
         self.ws_last_eval = [-1] * 10
         self.clustered = True
+        self.starttime_after_reclustered = time.time()
+        self.time_after_reclustered = 0
 
         # Set 'previous' translation to origin
         # All Transforms are given relative to 0,0,0, not in absolute coords.
@@ -297,7 +302,8 @@ class Amcl():
         ws /= np.sum(ws)
 
         # Resample AMCL algorithm
-        self.particlecloud = self._resample_mcl_base(self.particlecloud, ws)
+        self.particlecloud = self.resample_amcl(self.particlecloud, ws)
+        self.particlecloud.poses[-self.RAN_PARTICLES:] = self._generate_random_poses(self.RAN_PARTICLES).poses
 
 
     def _generate_random_poses(self, num_poses=None):
@@ -354,30 +360,40 @@ class Amcl():
         Return:
             (geometry_msgs.msg.PoseArray): resampled particle poses
         """
-        SPREAD_THRESHOLD = 150
+        SPREAD_THRESHOLD = 230
 
-        if not self.clustered:
-            poses = self._resample_mcl_base(poses, ws)
+        #if not self.clustered:
+        #    poses = self._resample_mcl_base(poses, ws)
 
         poses = self.resample_amcl_base(poses, ws)
 
         # Keep track of robot's certainty of the pose
         rospy.loginfo(f"Certainty: {np.mean(self.ws_last_eval):.4f} | " +
-                      f"Threshold: {self.KIDNAP_THRESHOLD}")
+                      f"Threshold: {self.KIDNAP_THRESHOLD} | " +
+                      f"Clustered: {self.clustered} | "
+                      f"Time after reclustered {time.time() - self.starttime_after_reclustered}")
 
         # If weights are low, dissolve particles
-        #if len(poses.poses) > SPREAD_THRESHOLD and \
-        if -1 not in self.ws_last_eval and self.clustered and \
+        # if len(poses.poses) > SPREAD_THRESHOLD and \
+        if time.time() - self.starttime_after_reclustered > 10 and \
+           -1 not in self.ws_last_eval and self.clustered and \
            np.mean(self.ws_last_eval) <= self.KIDNAP_THRESHOLD:
             # Reinitialize the trailing of weight eval values
             self.ws_last_eval = list(map(lambda _: -1, self.ws_last_eval))
-            poses = self._generate_random_poses(len(poses.poses))
+
+            self.NUMBER_PREDICTED_READINGS_OLD = self.NUMBER_PREDICTED_READINGS
+            self.NUMBER_PREDICTED_READINGS = 30
+            self.sensor_model_initialised = False
+            poses = self._generate_random_poses(1000)
             self.clustered = False
 
             return poses
 
         if len(poses.poses) <= SPREAD_THRESHOLD:
+            self.NUMBER_PREDICTED_READINGS = self.NUMBER_PREDICTED_READINGS_OLD
+            self.sensor_model_initialised = False
             self.clustered = True
+            self.starttime_after_reclustered = time.time()
 
         return poses
 
@@ -436,7 +452,7 @@ class Amcl():
         poses_resampled = PoseArray()
 
         # KLD sampling initialization
-        MAX_NUM_PARTICLES = 500
+        MAX_NUM_PARTICLES = 1000
         eps = 0.08
         z = 0.99
         Mx = 0
@@ -499,7 +515,7 @@ class Amcl():
         pxs, pys, oxs, oys, ozs, ows = [], [], [], [], [], []
 
         # Generate lists for each pose estimate
-        for pose in self.particlecloud.poses:
+        for pose in self.particlecloud.poses[:-self.RAN_PARTICLES]:
             pxs.append(pose.position.x)
             pys.append(pose.position.y)
             oxs.append(pose.orientation.x)
@@ -755,11 +771,15 @@ class Amcl():
         resolution = self.occupancy_map.info.resolution
 
         # Check if pose is in the map
-        map_x = int((x_hat - origin.x) / resolution)
-        map_y = int((y_hat - origin.y) / resolution)
-        while self.occupancy_map.data[map_y * width + map_x] == -1:
-            map_y = np.random.randint(height)
-            map_x = np.random.randint(width)
+        map_x = int((x_hat - origin.x) / resolution) # int(x_hat / resolution - origin.x)
+        map_y = int((y_hat - origin.y) / resolution) # int(y_hat / resolution - origin.y)
+
+        try:
+            while self.occupancy_map.data[map_y * width + map_x] == -1:
+                map_y = np.random.randint(height)
+                map_x = np.random.randint(width)
+        except IndexError:
+            pass
 
         x_hat = map_x * resolution + origin.x
         y_hat = map_y * resolution + origin.y

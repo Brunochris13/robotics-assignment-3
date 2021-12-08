@@ -8,7 +8,7 @@ transform_tolerance: 10.0
 footprint: [[0.2, 0.2], [0.2, -0.2], [-0.2, -0.2], [-0.2, 0.2]]
 
 robot_radius: 0.8 #0.225 
-inflation_radius: 0.4 #0.15
+inflation_radius: 0.3 #0.15
 cost_scaling_factor: 0.2
 
 observation_sources: laser_scan_sensor
