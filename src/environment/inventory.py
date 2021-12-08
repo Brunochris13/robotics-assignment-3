@@ -56,7 +56,7 @@ class Table():
     def _init_robot_poses(self):
         # Based on self.pose, self.width and self.length
 
-        safe_dist = 0.6
+        safe_dist = 0.7
         height_mid = self.height / 2
         width_mid = self.width / 2
 
