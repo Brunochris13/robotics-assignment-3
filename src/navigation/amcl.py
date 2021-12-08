@@ -25,7 +25,8 @@ PI_OVER_TWO = math.pi/2
 
 
 def multiproc(L, f, scan, pose_array):
-    L += [f(scan, pose) for pose in pose_array]
+    for pose in pose_array:
+        L.append((pose, f(scan, pose)))
 
 
 class Amcl():
@@ -40,16 +41,16 @@ class Amcl():
 
     # Set motion model parameters
     ODOM_ROTATION_NOISE = .1
-    ODOM_TRANSLATION_NOISE = .1
-    ODOM_DRIFT_NOISE = .1
+    ODOM_TRANSLATION_NOISE = .08
+    ODOM_DRIFT_NOISE = .08
 
-    NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
+    NUMBER_PREDICTED_READINGS = 150  # Number of Initial Samples
 
     MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
     KIDNAP_THRESHOLD = 100
 
-    MAX_PROCESSES = 1
+    MAX_PROCESSES = 4
 
     def __init__(self):
         # Minimum change (m/radians) before publishing new particle cloud and pose
@@ -237,25 +238,27 @@ class Amcl():
             self.num_last_updates = 0
 
 
-        # if len(self.particlecloud.poses) < self.MAX_PROCESSES:
-        #     pose_arrays = np.array_split(self.particlecloud.poses, len(self.particlecloud.poses))
-        # else:
-        #     pose_arrays = np.array_split(self.particlecloud.poses, self.MAX_PROCESSES)
+        if len(self.particlecloud.poses) < self.MAX_PROCESSES:
+            pose_arrays = np.array_split(self.particlecloud.poses, len(self.particlecloud.poses))
+        else:
+            pose_arrays = np.array_split(self.particlecloud.poses, self.MAX_PROCESSES)
 
-        
-        # with Manager() as manager:
-        #     L = manager.list()
-        #     ps = []
+        ws = []
 
-        #     for pose_array in pose_arrays:
-        #         p = Process(target=multiproc, args=(L, self.sensor_model.get_weight, scan, pose_array))
-        #         p.start()
-        #         ps.append(p)
+        with Manager() as manager:
+            L = manager.list()
+            ps = []
 
-        #     for p in ps:
-        #         p.join()
+            for pose_array in pose_arrays:
+                p = Process(target=multiproc, args=(L, self.sensor_model.get_weight, scan, pose_array))
+                p.start()
+                ps.append(p)
 
-        #     ws = list(L)
+            for p in ps:
+                p.join()
+
+            ws = [l[1] for l in L]
+            self.particlecloud.poses = [l[0] for l in L]
 
         # def get_ws():
         #     ws = []
@@ -278,7 +281,7 @@ class Amcl():
         
         # Generate importance weights based on scan readings
         # ws = self.sensor_model.get_weights(scan, self.particlecloud.poses)
-        ws = [self.sensor_model.get_weight(scan, pose) for pose in self.particlecloud.poses]
+        # ws = [self.sensor_model.get_weight(scan, pose) for pose in self.particlecloud.poses]
 
         # Update last weight evaluations with the most recent evaluation
         self.ws_last_eval = [self.WS_LAST_FUNC(ws)] + self.ws_last_eval[:-1]
@@ -426,7 +429,7 @@ class Amcl():
         poses_resampled = PoseArray()
 
         # KLD sampling initialization
-        MAX_NUM_PARTICLES = 500
+        MAX_NUM_PARTICLES = 200
         eps = 0.08
         z = 0.99
         Mx = 0
