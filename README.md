@@ -12,6 +12,11 @@ roscore
 roslaunch waiter_robot stage_navigation.launch
 ```
 
+To launch waiter robot functionality
+```
+python3 src/main.py
+```
+
 ## Requirements
 ### General
 For a quick setup just run the following scripts inside **waiter_robot** package:
