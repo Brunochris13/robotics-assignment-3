@@ -54,7 +54,11 @@ class Vision():
 
 
     def get_faces(self, frame, confidence_threshold=0.5):
-        """Get faces coordinates"""
+        """Get faces coordinates
+
+        Returns:
+            list of tuple : [(start_x, start_y, end_x, end_y)]
+        """
         # convert the frame into a blob to be ready for NN input
         blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), (104, 177.0, 123.0))
         # set the image as input to the NN
@@ -141,7 +145,11 @@ class Vision():
 
 
     def predict_age_and_gender(self, image):
-        """Predict the gender of the faces showing in the image"""
+        """Predict the gender of the faces showing in the image
+
+        Returns:
+            list of tuple : [(gender, age)]
+        """
         # Initialize frame size
         # frame_width = 1280
         # frame_height = 720
@@ -176,7 +184,15 @@ class Vision():
 
 
     def formater(self, ppl):
-        """Change the format of data"""
+        # """Change the format of data"""
+        """Change the format of data
+
+        Args:
+            list of tuple : [(gender, age:string)]
+
+        Returns:
+            list of tuple : [(gender, age:int)]
+        """
         people = []
         for person in ppl:
             gender, age = person
@@ -211,9 +227,17 @@ class Vision():
 
         return ppl
 
-    def see_demo(self):
+    def see_demo(self, name):
+        """Pick a certain image for the demo
+
+        Args:
+            name (string): name of a image file
+
+        Returns:
+            list of tuple
+        """
         file_list = os.listdir(IMAGE_DIR)
-        img_name = "3ppl_with_3generation.webp"
+        img_name = name
         img = cv2.imread(IMAGE_DIR + img_name)
         self.display_img("Customer",img)
         ppl = self.predict_age_and_gender(img)
