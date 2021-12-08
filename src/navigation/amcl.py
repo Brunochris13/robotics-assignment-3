@@ -40,11 +40,16 @@ class Amcl():
     INIT_HEADING = 0 	# Initial orientation of robot (radians)
 
     # Set motion model parameters
-    ODOM_ROTATION_NOISE = .1
-    ODOM_TRANSLATION_NOISE = .08
-    ODOM_DRIFT_NOISE = .08
+    ODOM_ROTATION_NOISE = .05
+    ODOM_TRANSLATION_NOISE = .05
+    ODOM_DRIFT_NOISE = .05
+
+    MOTION_ROTATION_NOISE = .1
+    MOTION_TRANSLATION_NOISE = .05
+    MOTION_DRIFT_NOISE = .05
 
     NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
+    NUM_PARTICLES = 150
 
     MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
@@ -292,7 +297,7 @@ class Amcl():
         ws /= np.sum(ws)
 
         # Resample AMCL algorithm
-        self.particlecloud = self.resample_amcl(self.particlecloud, ws)
+        self.particlecloud = self._resample_mcl_base(self.particlecloud, ws)
 
 
     def _generate_random_poses(self, num_poses=None):
@@ -309,7 +314,7 @@ class Amcl():
         """
         # Set default value
         if num_poses is None:
-            num_poses = self.NUMBER_PREDICTED_READINGS
+            num_poses = self.NUM_PARTICLES
         
         # Initialize random particle array
         poses_uniform = PoseArray()
@@ -431,7 +436,7 @@ class Amcl():
         poses_resampled = PoseArray()
 
         # KLD sampling initialization
-        MAX_NUM_PARTICLES = 200
+        MAX_NUM_PARTICLES = 500
         eps = 0.08
         z = 0.99
         Mx = 0
@@ -441,7 +446,7 @@ class Amcl():
 
         # While not min or KLD calculated samples reached
         while len(poses_resampled.poses) < Mx or \
-              len(poses_resampled.poses) < self.NUMBER_PREDICTED_READINGS:
+              len(poses_resampled.poses) < self.NUM_PARTICLES:
             # Sample random pose, add it to resampled list
             pose = np.random.choice(poses.poses, p=ws)
             pose = self._get_noisy_pose(pose)
@@ -523,7 +528,7 @@ class Amcl():
         """
         # Num best particles to keep
         if num_keep is None:
-            num_keep = self.NUMBER_PREDICTED_READINGS // 2
+            num_keep = self.NUM_PARTICLES // 2
 
         # Sorted indeces of `estimates - mean`
         ind = np.argsort(np.abs(estimates - np.mean(estimates)))
@@ -718,7 +723,7 @@ class Amcl():
         initial_poses = PoseArray()
 
         # Generate a list of noisy particles
-        for _ in range(self.NUMBER_PREDICTED_READINGS):
+        for _ in range(self.NUM_PARTICLES):
             initial_poses.poses.append(self._get_noisy_pose(pose0))
 
         return initial_poses
@@ -739,9 +744,9 @@ class Amcl():
         pose_hat = Pose()
 
         # Samples from Gaussian with variance based on sampling noise
-        x_hat = np.random.normal(pose.position.x, self.ODOM_TRANSLATION_NOISE)
-        y_hat = np.random.normal(pose.position.y, self.ODOM_DRIFT_NOISE)
-        theta_hat = np.random.normal(scale=self.ODOM_ROTATION_NOISE)
+        x_hat = np.random.normal(pose.position.x, self.MOTION_TRANSLATION_NOISE)
+        y_hat = np.random.normal(pose.position.y, self.MOTION_DRIFT_NOISE)
+        theta_hat = np.random.normal(scale=self.MOTION_ROTATION_NOISE)
 
         # # Map parameters
         width = self.occupancy_map.info.width

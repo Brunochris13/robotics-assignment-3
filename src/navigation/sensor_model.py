@@ -25,6 +25,7 @@ class SensorModel(object):
         
         self.sigma_hit = 0.2 		# Noise on hit
         self.lambda_short = 0.1 	# Noise on short reading
+        self.sigma = 0.08
         
         # Initialise scan parameters to nothing
         self.set_laser_scan_parameters(0, 0, 0, 0, 0)
@@ -135,9 +136,11 @@ class SensorModel(object):
 
             # ----- Compute the range according to the map
             start = time.time()
-            map_range = self.calc_map_range(pose.position.x, pose.position.y,
-                                     head + obs_bearing)
+            map_range = self.calc_map_range(pose.position.x, pose.position.y, head + obs_bearing)
+            # map_range = self.occupancy_field.get_closest_obstacle_distance(*self.transform_scan(pose, obs_range, obs_bearing))
             map_time += time.time() - start
+
+            # p += math.exp((-map_range**2)/(2*self.sigma**2))
 
             start = time.time()
             pz = self.predict(obs_range, map_range)
@@ -159,7 +162,13 @@ class SensorModel(object):
             # obs_range = scan.ranges[i]
             x, y = self.transform_scan(pose, obs_range, i)
             d = self.occupancy_field.get_closest_obstacle_distance(x, y)
-            tot_prob += math.exp((-d**2)/(2*self.sigma**2))
+            tot_prob += math.exp((-d**2)/(2*self.sigma_hit**2))
+        
+
+        for i, obs_bearing in self.reading_points:
+            x, y = self.transform_scan(pose, obs_bearing, i)
+            d = self.occupancy_field.get_closest_obstacle_distance(x, y)
+
 
         return tot_prob/len(scan.ranges)
     
