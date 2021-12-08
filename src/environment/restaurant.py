@@ -9,7 +9,7 @@ from time import sleep
 
 INVENTORY = {
     "entrance": {"x": 0, "y": -6.8, "theta": -PI_2},
-    "kitchen": {"x": 3, "y": 4.5, "theta": 0},
+    "kitchen": {"x": 3, "y": 4.25, "theta": PI_2},
     "tables": [
         {"id": 1, "pose": {"position": {"x": -3.5, "y": -7, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 4, "type": "square"},
         {"id": 3, "pose": {"position": {"x": -4, "y": -3, "z": 0}, "orientation": {"x": 0, "y": 0, "z": 0, "w": 0}}, "num_people": 6, "type": "rectangle"},
@@ -25,12 +25,12 @@ INVENTORY = {
 MENU_ALL = {
     "hamburger": 10,
     "water": 3,
-    "beer": 5,
+    "wine": 5,
 }
 
 # Menu (18+)
 MENU_N18 = {
-    "beer": 5,
+    "wine": 5,
 }
 
 

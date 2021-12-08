@@ -195,7 +195,8 @@ class Vision():
         """
         
         file_list = os.listdir(IMAGE_DIR)
-        img_name = random.choice(file_list)
+        # img_name = random.choice(file_list)
+        img_name = "male-family-members-the-male-members-of-the-family-representing-the-three-generations-stock-image_csp19032269.webp"
         img = cv2.imread(IMAGE_DIR + img_name)
         self.display_img("Customer",img)
         ppl = self.predict_age_and_gender(img)
