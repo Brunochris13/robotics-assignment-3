@@ -44,7 +44,7 @@ class Amcl():
     ODOM_DRIFT_NOISE = .1
 
 
-    NUMBER_PREDICTED_READINGS = 150  # Number of Initial Samples
+    NUMBER_PREDICTED_READINGS = 300 # 150  # Number of Initial Samples
     MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
     KIDNAP_THRESHOLD = 100
@@ -99,9 +99,9 @@ class Amcl():
                          " running: rosrun map_server map_server <mapname> ")
             sys.exit(1)
 
-        rospy.loginfo("Map received. %d X %d, %f px/m." %
-                      (self.occupancy_map.info.width, self.occupancy_map.info.height,
-                       self.occupancy_map.info.resolution))
+        # rospy.loginfo("Map received. %d X %d, %f px/m." %
+        #               (self.occupancy_map.info.width, self.occupancy_map.info.height,
+        #                self.occupancy_map.info.resolution))
 
         self.set_map()
 
