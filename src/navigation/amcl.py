@@ -44,7 +44,7 @@ class Amcl():
     ODOM_TRANSLATION_NOISE = .08
     ODOM_DRIFT_NOISE = .08
 
-    NUMBER_PREDICTED_READINGS = 150  # Number of Initial Samples
+    NUMBER_PREDICTED_READINGS = 70  # Number of Initial Samples
 
     MAX_NUM_SKIP_UPDATES = 1  # Number of updates the cloud is not updated
 
@@ -259,6 +259,8 @@ class Amcl():
 
             ws = [l[1] for l in L]
             self.particlecloud.poses = [l[0] for l in L]
+        
+        # print("Weights sum up to", sum(ws))
 
         # def get_ws():
         #     ws = []
