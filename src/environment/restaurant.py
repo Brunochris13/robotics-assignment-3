@@ -96,7 +96,7 @@ class Restaurant():
         sleep(req.time)
         return TimerResponse(req.id, req.is_food)
 
-    def request_waiting(self, order_id, is_food=True, time=10):
+    def request_waiting(self, order_id, is_food=True, time=30):
         self._WaitingThread(self, order_id, is_food, time).start()
 
     def get_menu(self, n18=False):
