@@ -1,0 +1,65 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Navigation to (0, 0):
+[INFO] [1639010880.531196, 11.000000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010899.530978, 30.000000]: [MOVING] Arrival
+Duration: 19.00080943107605
+Accuracy XY: 0.1911699363707628
+Accuracy Yaw: 1.2736562742942914
+
+Navigation to (-1, 2):
+[INFO] [1639010899.532000, 30.000000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010908.332037, 38.800000]: [MOVING] Arrival
+Duration: 8.80242395401001
+Accuracy XY: 0.1948472540927872
+Accuracy Yaw: 0.5633289730541411
+
+Navigation to (3, 4.5):
+[INFO] [1639010908.334582, 38.800000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010922.630829, 53.100000]: [MOVING] Arrival
+Duration: 14.297245025634766
+Accuracy XY: 0.20202456780148056
+Accuracy Yaw: 0.9440638326230448
+
+Navigation to (2.5, -0.5):
+[INFO] [1639010922.631733, 53.100000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010937.331060, 67.800000]: [MOVING] Arrival
+Duration: 14.700277090072632
+Accuracy XY: 0.4782456599706509
+Accuracy Yaw: 0.8301203756934663
+
+Navigation to (0, -6.8):
+[INFO] [1639010937.332028, 67.800000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010966.132209, 96.600000]: [MOVING] Recovery Started
+[INFO] [1639010966.349318, 96.800000]: Cancelled goal_pose
+[INFO] [1639010971.596307, 102.000000]: [MOVING] Recovery Ended
+[INFO] [1639010971.597436, 102.000000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639011009.631020, 140.100000]: [MOVING] Arrival
+[INFO] [1639011011.230990, 141.700000]: [MOVING] Arrival
+Duration: 73.89986181259155
+Accuracy XY: 0.4749341189202042
+Accuracy Yaw: 0.4007355883381938
+

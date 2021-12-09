@@ -1,0 +1,57 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Navigation to (0, 0):
+[INFO] [1639010525.638332, 14.800000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010543.438424, 32.600000]: [MOVING] Arrival
+Duration: 17.801189184188843
+Accuracy XY: 0.129945573786451
+Accuracy Yaw: 0.45998924487901444
+
+Navigation to (-1, 2):
+[INFO] [1639010543.439528, 32.600000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010552.238135, 41.400000]: [MOVING] Arrival
+Duration: 8.7995765209198
+Accuracy XY: 0.1757951393629904
+Accuracy Yaw: 0.489181429223688
+
+Navigation to (3, 4.5):
+[INFO] [1639010552.239110, 41.400000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010564.338124, 53.500000]: [MOVING] Arrival
+Duration: 12.099973440170288
+Accuracy XY: 0.20705430892408608
+Accuracy Yaw: 0.9992902424499006
+
+Navigation to (2.5, -0.5):
+[INFO] [1639010564.339106, 53.500000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010579.138252, 68.300000]: [MOVING] Arrival
+Duration: 14.800201416015625
+Accuracy XY: 0.476218475626976
+Accuracy Yaw: 0.6243639302468413
+
+Navigation to (0, -6.8):
+[INFO] [1639010579.139326, 68.300000]: [MOVING] Departure - publishing to NavStack
+[INFO] [1639010642.638142, 131.800000]: [MOVING] Arrival
+Duration: 63.49976968765259
+Accuracy XY: 0.3584922303559869
+Accuracy Yaw: 0.020508213708536616
+
