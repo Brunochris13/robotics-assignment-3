@@ -1,5 +1,5 @@
 # Install the dependent packages
-sudo apt install portaudio19-dev python3-pyaudio ffmpeg
+sudo apt install portaudio19-dev python3-pyaudio python3-sklearn ffmpeg
 
 # Create virtual environment inside waiter_robot
 cd ~/catkin_ws/src/waiter_robot/
