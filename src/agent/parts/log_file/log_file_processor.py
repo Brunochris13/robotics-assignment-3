@@ -7,6 +7,14 @@ LOG_NAME = "amcllogs"
 PATH = LOG_DIR + LOG_NAME
 
 def convertor(line):
+    """extract number from a line
+
+    Args:
+        line of log file
+
+    Returns:
+        number string
+    """
     number = re.findall(r'\d+', line)
     if(len(number) == 2):
         n = "{}.{}".format(number[0], number[1])
@@ -15,6 +23,11 @@ def convertor(line):
     return n
 
 def log_processor(file_name):
+    """experiment result processor which takes a mean
+
+    Args:
+        file_name (string)
+    """
     
     file_list = os.listdir(LOG_DIR + file_name)
     
@@ -64,5 +77,6 @@ def log_processor(file_name):
         print("table {}: Accuracy XY : {}".format(k, log_dict[k]["Accuracy XY"]))
         print("table {}: Accuracy Yaw : {}".format(k, log_dict[k]["Accuracy Yaw"]))
     print("------")
+    
 if __name__ == "__main__":
     log_processor(LOG_NAME)
